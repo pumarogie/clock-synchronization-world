@@ -215,7 +215,7 @@ export function VideoPlayer({
           onClick={handleProgressClick}
         >
           <motion.div
-            className="h-full bg-gradient-to-r from-cyan-500 to-purple-500 rounded-full"
+            className="h-full bg-linear-to-r from-cyan-500 to-purple-500 rounded-full"
             style={{ width: `${(currentTime / (videoElementRef.current?.duration || 1)) * 100}%` }}
           />
         </div>

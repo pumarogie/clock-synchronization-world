@@ -137,7 +137,7 @@ export async function getAllRooms(): Promise<Room[]> {
     const redis = getRedisClient();
     if (redis) {
       const rooms = await redis.hGetAll(KEYS.allRooms);
-      return Object.values(rooms).map(r => JSON.parse(r) as Room);
+      return Object.values(rooms).map(r => JSON.parse(r as string) as Room);
     }
   }
   return Array.from(localRooms.values());

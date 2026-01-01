@@ -117,7 +117,7 @@ export function WatchParty() {
         <div className="relative">
           <motion.button
             onClick={() => setShowEmojiPicker(!showEmojiPicker)}
-            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-pink-500/20 to-purple-500/20 border border-pink-500/30 text-pink-400 hover:from-pink-500/30 hover:to-purple-500/30 transition-all"
+            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-linear-to-r from-pink-500/20 to-purple-500/20 border border-pink-500/30 text-pink-400 hover:from-pink-500/30 hover:to-purple-500/30 transition-all"
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
           >
@@ -168,7 +168,7 @@ export function WatchParty() {
       </div>
 
       {/* Sync Stats */}
-      <div className="p-4 rounded-xl bg-gradient-to-r from-cyan-500/10 to-purple-500/10 border border-cyan-500/20">
+      <div className="p-4 rounded-xl bg-linear-to-r from-cyan-500/10 to-purple-500/10 border border-cyan-500/20">
         <h3 className="text-sm font-semibold text-white mb-3 flex items-center gap-2">
           <span>📊</span>
           Live Sync Statistics

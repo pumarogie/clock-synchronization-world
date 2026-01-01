@@ -42,8 +42,8 @@ export function Clock({ time, city, timezone, date, flag, isLocal = false }: Clo
     <motion.div
       className={`clock-container relative flex flex-col items-center p-6 rounded-2xl backdrop-blur-xl border transition-all duration-500 ${
         isLocal 
-          ? 'bg-gradient-to-br from-emerald-900/40 to-emerald-800/20 border-emerald-500/30 shadow-lg shadow-emerald-500/10' 
-          : 'bg-gradient-to-br from-slate-900/60 to-slate-800/40 border-slate-600/30'
+          ? 'bg-linear-to-br from-emerald-900/40 to-emerald-800/20 border-emerald-500/30 shadow-lg shadow-emerald-500/10' 
+          : 'bg-linear-to-br from-slate-900/60 to-slate-800/40 border-slate-600/30'
       }`}
       initial={{ opacity: 0, scale: 0.9 }}
       animate={{ opacity: 1, scale: 1 }}
@@ -73,7 +73,7 @@ export function Clock({ time, city, timezone, date, flag, isLocal = false }: Clo
         {/* Clock face */}
         <div className={`absolute inset-0 rounded-full border-2 ${
           isLocal ? 'border-emerald-500/50' : 'border-slate-500/50'
-        } bg-gradient-to-br from-slate-800/80 to-slate-900/80`}>
+        } bg-linear-to-br from-slate-800/80 to-slate-900/80`}>
           {/* Hour markers */}
           {[...Array(12)].map((_, i) => (
             <div
@@ -104,7 +104,7 @@ export function Clock({ time, city, timezone, date, flag, isLocal = false }: Clo
             animate={{ rotate: hourDegrees }}
             transition={{ type: 'spring', stiffness: 100, damping: 20 }}
           >
-            <div className="w-full h-full bg-gradient-to-t from-white to-slate-300 rounded-full" />
+            <div className="w-full h-full bg-linear-to-t from-white to-slate-300 rounded-full" />
           </motion.div>
 
           {/* Minute hand */}
@@ -119,7 +119,7 @@ export function Clock({ time, city, timezone, date, flag, isLocal = false }: Clo
             animate={{ rotate: minuteDegrees }}
             transition={{ type: 'spring', stiffness: 100, damping: 20 }}
           >
-            <div className="w-full h-full bg-gradient-to-t from-slate-200 to-slate-400 rounded-full" />
+            <div className="w-full h-full bg-linear-to-t from-slate-200 to-slate-400 rounded-full" />
           </motion.div>
 
           {/* Second hand */}
