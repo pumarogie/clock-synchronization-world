@@ -1,0 +1,124 @@
+# ═══════════════════════════════════════════════════════════════════════════
+# DOCKER COMPOSE FOR SCALABLE VIDEO SYNC
+# ═══════════════════════════════════════════════════════════════════════════
+#
+# Usage:
+#   Development:  docker compose up
+#   Production:   docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+#   Scale:        docker compose up -d --scale app=5
+#   Logs:         docker compose logs -f app
+#   Stop:         docker compose down
+#
+# ═══════════════════════════════════════════════════════════════════════════
+
+version: '3.8'
+
+services:
+  # ═══════════════════════════════════════════════════════════════════════════
+  # REDIS - Message broker and state store
+  # ═══════════════════════════════════════════════════════════════════════════
+  redis:
+    image: redis:7-alpine
+    container_name: sync-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - sync-network
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # APPLICATION - Video sync server (scalable)
+  # ═══════════════════════════════════════════════════════════════════════════
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - REDIS_URL=redis://redis:6379
+      - INSTANCE_ID=${HOSTNAME:-app}-${RANDOM}
+    depends_on:
+      redis:
+        condition: service_healthy
+    networks:
+      - sync-network
+    # Scale this service for more capacity
+    # docker compose up -d --scale app=5
+    deploy:
+      mode: replicated
+      replicas: 3
+      resources:
+        limits:
+          cpus: '1'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 128M
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # NGINX - Load balancer and reverse proxy
+  # ═══════════════════════════════════════════════════════════════════════════
+  nginx:
+    image: nginx:alpine
+    container_name: sync-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx-docker.conf:/etc/nginx/conf.d/default.conf:ro
+      # Uncomment for SSL
+      # - ./certs:/etc/nginx/certs:ro
+    depends_on:
+      - app
+    networks:
+      - sync-network
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # REDIS COMMANDER - Optional: Redis UI for debugging
+  # ═══════════════════════════════════════════════════════════════════════════
+  redis-commander:
+    image: rediscommander/redis-commander:latest
+    container_name: sync-redis-commander
+    restart: unless-stopped
+    environment:
+      - REDIS_HOSTS=local:redis:6379
+    ports:
+      - "8081:8081"
+    depends_on:
+      - redis
+    networks:
+      - sync-network
+    profiles:
+      - debug
+
+# ═══════════════════════════════════════════════════════════════════════════
+# NETWORKS
+# ═══════════════════════════════════════════════════════════════════════════
+networks:
+  sync-network:
+    driver: bridge
+
+# ═══════════════════════════════════════════════════════════════════════════
+# VOLUMES
+# ═══════════════════════════════════════════════════════════════════════════
+volumes:
+  redis_data:
+    driver: local
+
