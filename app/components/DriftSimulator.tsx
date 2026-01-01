@@ -1,14 +1,17 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { motion } from 'framer-motion';
+import { useState } from "react";
+import { motion } from "framer-motion";
 
 interface DriftSimulatorProps {
   actualOffset: number;
   syncedTime: number;
 }
 
-export function DriftSimulator({ actualOffset, syncedTime }: DriftSimulatorProps) {
+export function DriftSimulator({
+  actualOffset,
+  syncedTime,
+}: DriftSimulatorProps) {
   const [simulatedDrift, setSimulatedDrift] = useState(0);
   const [showComparison, setShowComparison] = useState(true);
 
@@ -20,22 +23,22 @@ export function DriftSimulator({ actualOffset, syncedTime }: DriftSimulatorProps
   const correctedTime = new Date(Date.now() + simulatedDrift + actualOffset);
 
   const formatTime = (date: Date) => {
-    return date.toLocaleTimeString('en-US', { 
-      hour12: false, 
-      hour: '2-digit', 
-      minute: '2-digit', 
-      second: '2-digit',
-      fractionalSecondDigits: 1
+    return date.toLocaleTimeString("en-US", {
+      hour12: false,
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+      fractionalSecondDigits: 1,
     });
   };
 
   const presetDrifts = [
-    { label: 'No Drift', value: 0 },
-    { label: '+1 second', value: 1000 },
-    { label: '+5 seconds', value: 5000 },
-    { label: '+30 seconds', value: 30000 },
-    { label: '-1 second', value: -1000 },
-    { label: '-5 seconds', value: -5000 },
+    { label: "No Drift", value: 0 },
+    { label: "+1 second", value: 1000 },
+    { label: "+5 seconds", value: 5000 },
+    { label: "+30 seconds", value: 30000 },
+    { label: "-1 second", value: -1000 },
+    { label: "-5 seconds", value: -5000 },
   ];
 
   return (
@@ -51,9 +54,12 @@ export function DriftSimulator({ actualOffset, syncedTime }: DriftSimulatorProps
       {/* Drift slider */}
       <div className="mb-6">
         <div className="flex justify-between items-center mb-2">
-          <label className="text-sm font-medium text-slate-300">Simulated Clock Drift</label>
+          <label className="text-sm font-medium text-slate-300">
+            Simulated Clock Drift
+          </label>
           <span className="text-sm font-mono text-cyan-400">
-            {simulatedDrift >= 0 ? '+' : ''}{(simulatedDrift / 1000).toFixed(1)}s
+            {simulatedDrift >= 0 ? "+" : ""}
+            {(simulatedDrift / 1000).toFixed(1)}s
           </span>
         </div>
         <input
@@ -80,8 +86,8 @@ export function DriftSimulator({ actualOffset, syncedTime }: DriftSimulatorProps
             onClick={() => setSimulatedDrift(preset.value)}
             className={`px-3 py-1.5 text-xs rounded-lg border transition-all ${
               simulatedDrift === preset.value
-                ? 'bg-cyan-500/20 border-cyan-500/50 text-cyan-400'
-                : 'bg-slate-800/50 border-slate-700/50 text-slate-400 hover:border-slate-600'
+                ? "bg-cyan-500/20 border-cyan-500/50 text-cyan-400"
+                : "bg-slate-800/50 border-slate-700/50 text-slate-400 hover:border-slate-600"
             }`}
           >
             {preset.label}
@@ -94,14 +100,14 @@ export function DriftSimulator({ actualOffset, syncedTime }: DriftSimulatorProps
         onClick={() => setShowComparison(!showComparison)}
         className="mb-6 text-sm text-cyan-400 hover:text-cyan-300 transition-colors"
       >
-        {showComparison ? '▼ Hide' : '▶ Show'} Time Comparison
+        {showComparison ? "▼ Hide" : "▶ Show"} Time Comparison
       </button>
 
       {/* Time comparison */}
       {showComparison && (
         <motion.div
           initial={{ opacity: 0, height: 0 }}
-          animate={{ opacity: 1, height: 'auto' }}
+          animate={{ opacity: 1, height: "auto" }}
           className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6"
         >
           {/* Your "drifted" clock */}
@@ -111,7 +117,11 @@ export function DriftSimulator({ actualOffset, syncedTime }: DriftSimulatorProps
             time={formatTime(localTime)}
             color="red"
             icon="⏰"
-            drift={simulatedDrift !== 0 ? `${simulatedDrift >= 0 ? '+' : ''}${(simulatedDrift/1000).toFixed(1)}s drift` : 'Accurate'}
+            drift={
+              simulatedDrift !== 0
+                ? `${simulatedDrift >= 0 ? "+" : ""}${(simulatedDrift / 1000).toFixed(1)}s drift`
+                : "Accurate"
+            }
           />
 
           {/* Server reference time */}
@@ -131,7 +141,7 @@ export function DriftSimulator({ actualOffset, syncedTime }: DriftSimulatorProps
             time={formatTime(correctedTime)}
             color="cyan"
             icon="✓"
-            drift={`Offset applied: ${actualOffset >= 0 ? '+' : ''}${actualOffset.toFixed(1)}ms`}
+            drift={`Offset applied: ${actualOffset >= 0 ? "+" : ""}${actualOffset.toFixed(1)}ms`}
           />
         </motion.div>
       )}
@@ -150,7 +160,7 @@ export function DriftSimulator({ actualOffset, syncedTime }: DriftSimulatorProps
             maxDiff={60000}
             description={getDifferenceDescription(simulatedDrift)}
           />
-          
+
           <DifferenceBar
             label="After Sync Correction"
             difference={simulatedDrift + actualOffset}
@@ -168,11 +178,15 @@ export function DriftSimulator({ actualOffset, syncedTime }: DriftSimulatorProps
           Real-World Implications
         </h3>
         <p className="text-sm text-slate-400 leading-relaxed">
-          Even small clock drift causes big problems: <span className="text-orange-400">SSL certificates fail</span> if 
-          your clock is off by minutes, <span className="text-orange-400">database conflicts</span> happen when 
-          timestamps don&apos;t match, and <span className="text-orange-400">distributed systems break</span> when 
-          nodes disagree on time. This is why services like NTP and protocols like this demo uses 
-          are essential for the internet to function.
+          Even small clock drift causes big problems:{" "}
+          <span className="text-orange-400">SSL certificates fail</span> if your
+          clock is off by minutes,{" "}
+          <span className="text-orange-400">database conflicts</span> happen
+          when timestamps don&apos;t match, and{" "}
+          <span className="text-orange-400">distributed systems break</span>{" "}
+          when nodes disagree on time. This is why services like NTP and
+          protocols like this demo uses are essential for the internet to
+          function.
         </p>
       </div>
     </div>
@@ -190,20 +204,20 @@ function TimeDisplay({
   label: string;
   sublabel: string;
   time: string;
-  color: 'red' | 'green' | 'cyan';
+  color: "red" | "green" | "cyan";
   icon: string;
   drift: string;
 }) {
   const colors = {
-    red: 'border-red-500/30 bg-red-500/5',
-    green: 'border-green-500/30 bg-green-500/5',
-    cyan: 'border-cyan-500/30 bg-cyan-500/5',
+    red: "border-red-500/30 bg-red-500/5",
+    green: "border-green-500/30 bg-green-500/5",
+    cyan: "border-cyan-500/30 bg-cyan-500/5",
   };
 
   const textColors = {
-    red: 'text-red-400',
-    green: 'text-green-400',
-    cyan: 'text-cyan-400',
+    red: "text-red-400",
+    green: "text-green-400",
+    cyan: "text-cyan-400",
   };
 
   return (
@@ -240,7 +254,7 @@ function DifferenceBar({
   description: string;
   isCorrected?: boolean;
 }) {
-  const percentage = Math.min(Math.abs(difference) / maxDiff * 100, 100);
+  const percentage = Math.min((Math.abs(difference) / maxDiff) * 100, 100);
   const isAhead = difference > 0;
   const isAccurate = Math.abs(difference) < 100;
 
@@ -248,29 +262,37 @@ function DifferenceBar({
     <div>
       <div className="flex justify-between items-center mb-1">
         <span className="text-xs text-slate-400">{label}</span>
-        <span className={`text-xs font-mono ${
-          isAccurate ? 'text-emerald-400' : isAhead ? 'text-orange-400' : 'text-blue-400'
-        }`}>
-          {isAccurate ? '~0ms' : `${isAhead ? '+' : ''}${(difference / 1000).toFixed(2)}s`}
+        <span
+          className={`text-xs font-mono ${
+            isAccurate
+              ? "text-emerald-400"
+              : isAhead
+                ? "text-orange-400"
+                : "text-blue-400"
+          }`}
+        >
+          {isAccurate
+            ? "~0ms"
+            : `${isAhead ? "+" : ""}${(difference / 1000).toFixed(2)}s`}
         </span>
       </div>
       <div className="h-2 bg-slate-700/50 rounded-full overflow-hidden relative">
         {/* Center marker */}
         <div className="absolute left-1/2 top-0 bottom-0 w-0.5 bg-slate-500 z-10" />
-        
+
         {/* Difference bar */}
         <motion.div
           className={`absolute top-0 bottom-0 rounded-full ${
             isAccurate
-              ? 'bg-emerald-500'
+              ? "bg-emerald-500"
               : isCorrected
-                ? 'bg-cyan-500'
+                ? "bg-cyan-500"
                 : isAhead
-                  ? 'bg-orange-500'
-                  : 'bg-blue-500'
+                  ? "bg-orange-500"
+                  : "bg-blue-500"
           }`}
           style={{
-            left: isAhead ? '50%' : `${50 - percentage / 2}%`,
+            left: isAhead ? "50%" : `${50 - percentage / 2}%`,
             width: `${percentage / 2}%`,
           }}
           initial={{ width: 0 }}
@@ -285,17 +307,16 @@ function DifferenceBar({
 
 function getDifferenceDescription(drift: number): string {
   const absDrift = Math.abs(drift);
-  if (absDrift < 100) return 'Your clock is accurate';
-  if (absDrift < 1000) return 'Slight drift - usually not noticeable';
-  if (absDrift < 5000) return 'Noticeable drift - may affect timestamps';
-  if (absDrift < 30000) return 'Significant drift - will cause issues';
-  return 'Severe drift - many services will fail';
+  if (absDrift < 100) return "Your clock is accurate";
+  if (absDrift < 1000) return "Slight drift - usually not noticeable";
+  if (absDrift < 5000) return "Noticeable drift - may affect timestamps";
+  if (absDrift < 30000) return "Significant drift - will cause issues";
+  return "Severe drift - many services will fail";
 }
 
 function getCorrectionDescription(drift: number, offset: number): string {
   const corrected = Math.abs(drift + offset);
-  if (corrected < 100) return 'Fully corrected by sync!';
-  if (corrected < 500) return 'Well within acceptable range';
-  return 'Residual error after correction';
+  if (corrected < 100) return "Fully corrected by sync!";
+  if (corrected < 500) return "Well within acceptable range";
+  return "Residual error after correction";
 }
-

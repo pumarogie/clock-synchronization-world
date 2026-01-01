@@ -1,18 +1,18 @@
 /**
  * Rate Limiter
- * 
+ *
  * Prevents abuse and reduces server load by limiting:
  * - Cursor updates: max 20/second per user
- * - Reactions: max 5/second per user  
+ * - Reactions: max 5/second per user
  * - Sync requests: max 10/second per user
  * - Messages: max 30/second per user
- * 
+ *
  * Uses Redis for distributed rate limiting across server cluster,
  * falls back to in-memory for standalone mode.
  */
 
-import { incrementWithExpiry, isRedisConnected } from './redis';
-import type { Socket } from 'socket.io';
+import { incrementWithExpiry, isRedisConnected } from "./redis";
+import type { Socket } from "socket.io";
 
 // ═══════════════════════════════════════════════════════════════════
 // TYPES
@@ -35,7 +35,13 @@ export interface LocalBucket {
   resetAt: number;
 }
 
-export type RateLimitAction = 'cursor' | 'reaction' | 'sync' | 'message' | 'roomJoin' | 'videoControl';
+export type RateLimitAction =
+  | "cursor"
+  | "reaction"
+  | "sync"
+  | "message"
+  | "roomJoin"
+  | "videoControl";
 
 // ═══════════════════════════════════════════════════════════════════
 // CONFIGURATION
@@ -46,11 +52,11 @@ const localBuckets = new Map<string, LocalBucket>();
 
 // Rate limit configurations
 export const LIMITS: Record<RateLimitAction, RateLimitConfig> = {
-  cursor: { max: 20, windowMs: 1000 },      // 20 cursor updates per second
-  reaction: { max: 5, windowMs: 1000 },     // 5 reactions per second
-  sync: { max: 10, windowMs: 1000 },        // 10 sync requests per second
-  message: { max: 30, windowMs: 1000 },     // 30 messages per second
-  roomJoin: { max: 5, windowMs: 10000 },    // 5 room joins per 10 seconds
+  cursor: { max: 20, windowMs: 1000 }, // 20 cursor updates per second
+  reaction: { max: 5, windowMs: 1000 }, // 5 reactions per second
+  sync: { max: 10, windowMs: 1000 }, // 10 sync requests per second
+  message: { max: 30, windowMs: 1000 }, // 30 messages per second
+  roomJoin: { max: 5, windowMs: 10000 }, // 5 room joins per 10 seconds
   videoControl: { max: 10, windowMs: 1000 }, // 10 video controls per second
 };
 
@@ -61,7 +67,10 @@ export const LIMITS: Record<RateLimitAction, RateLimitConfig> = {
 /**
  * Check if an action is rate limited
  */
-export async function checkRateLimit(userId: string, action: RateLimitAction): Promise<RateLimitResult> {
+export async function checkRateLimit(
+  userId: string,
+  action: RateLimitAction,
+): Promise<RateLimitResult> {
   const config = LIMITS[action];
   if (!config) {
     console.warn(`Unknown rate limit action: ${action}`);
@@ -70,9 +79,9 @@ export async function checkRateLimit(userId: string, action: RateLimitAction): P
 
   const key = `ratelimit:${action}:${userId}`;
   const windowSeconds = Math.ceil(config.windowMs / 1000);
-  
+
   let count: number;
-  
+
   if (isRedisConnected()) {
     // Distributed rate limiting via Redis
     count = await incrementWithExpiry(key, windowSeconds);
@@ -95,18 +104,20 @@ export function rateLimitMiddleware(action: RateLimitAction) {
   return async (socket: Socket, next?: () => void) => {
     const userId = (socket.data?.userId as string) || socket.id;
     const result = await checkRateLimit(userId, action);
-    
+
     if (!result.allowed) {
-      console.log(`Rate limited: ${userId} for ${action} (${result.count}/${LIMITS[action].max})`);
+      console.log(
+        `Rate limited: ${userId} for ${action} (${result.count}/${LIMITS[action].max})`,
+      );
       // Emit rate limit error to client
-      socket.emit('error:ratelimit', {
+      socket.emit("error:ratelimit", {
         action,
         retryIn: result.resetIn,
         message: `Rate limit exceeded for ${action}. Try again in ${result.resetIn}ms`,
       });
       return; // Don't call next - block the event
     }
-    
+
     next?.();
   };
 }
@@ -115,22 +126,22 @@ export function rateLimitMiddleware(action: RateLimitAction) {
  * Create a rate-limited event handler
  */
 export function withRateLimit<T extends unknown[]>(
-  action: RateLimitAction, 
-  handler: (socket: Socket, ...args: T) => void | Promise<void>
+  action: RateLimitAction,
+  handler: (socket: Socket, ...args: T) => void | Promise<void>,
 ) {
   return async (socket: Socket, ...args: T) => {
     const userId = (socket.data?.userId as string) || socket.id;
     const result = await checkRateLimit(userId, action);
-    
+
     if (!result.allowed) {
-      socket.emit('error:ratelimit', {
+      socket.emit("error:ratelimit", {
         action,
         retryIn: result.resetIn,
         message: `Rate limit exceeded for ${action}`,
       });
       return;
     }
-    
+
     return handler(socket, ...args);
   };
 }
@@ -145,7 +156,7 @@ export function withRateLimit<T extends unknown[]>(
 function incrementLocalBucket(key: string, windowMs: number): number {
   const now = Date.now();
   const bucket = localBuckets.get(key);
-  
+
   if (!bucket || now > bucket.resetAt) {
     // Create new bucket
     localBuckets.set(key, {
@@ -154,7 +165,7 @@ function incrementLocalBucket(key: string, windowMs: number): number {
     });
     return 1;
   }
-  
+
   // Increment existing bucket
   bucket.count++;
   return bucket.count;
@@ -189,7 +200,11 @@ export class TokenBucket {
   private refillInterval: number;
   private lastRefill: number;
 
-  constructor(maxTokens: number, refillRate: number, refillInterval: number = 1000) {
+  constructor(
+    maxTokens: number,
+    refillRate: number,
+    refillInterval: number = 1000,
+  ) {
     this.maxTokens = maxTokens;
     this.tokens = maxTokens;
     this.refillRate = refillRate;
@@ -202,12 +217,12 @@ export class TokenBucket {
    */
   consume(): boolean {
     this.refill();
-    
+
     if (this.tokens >= 1) {
       this.tokens -= 1;
       return true;
     }
-    
+
     return false;
   }
 
@@ -218,7 +233,7 @@ export class TokenBucket {
     const now = Date.now();
     const elapsed = now - this.lastRefill;
     const tokensToAdd = (elapsed / this.refillInterval) * this.refillRate;
-    
+
     this.tokens = Math.min(this.maxTokens, this.tokens + tokensToAdd);
     this.lastRefill = now;
   }
@@ -238,25 +253,34 @@ const userBuckets = new Map<string, TokenBucket>();
 /**
  * Get or create a token bucket for a user
  */
-export function getUserBucket(userId: string, action: RateLimitAction): TokenBucket {
+export function getUserBucket(
+  userId: string,
+  action: RateLimitAction,
+): TokenBucket {
   const key = `${action}:${userId}`;
-  
+
   if (!userBuckets.has(key)) {
     const config = LIMITS[action] || { max: 10, windowMs: 1000 };
-    userBuckets.set(key, new TokenBucket(
-      config.max * 2,  // Allow 2x burst
-      config.max,      // Refill at max rate
-      config.windowMs  // Per window
-    ));
+    userBuckets.set(
+      key,
+      new TokenBucket(
+        config.max * 2, // Allow 2x burst
+        config.max, // Refill at max rate
+        config.windowMs, // Per window
+      ),
+    );
   }
-  
+
   return userBuckets.get(key)!;
 }
 
 /**
  * Check rate limit using token bucket (smoother)
  */
-export function checkTokenBucket(userId: string, action: RateLimitAction): boolean {
+export function checkTokenBucket(
+  userId: string,
+  action: RateLimitAction,
+): boolean {
   const bucket = getUserBucket(userId, action);
   return bucket.consume();
 }
@@ -270,22 +294,25 @@ const connectionAttempts = new Map<string, number[]>();
 /**
  * Check if IP can create new connection
  */
-export function checkConnectionLimit(ip: string, maxPerMinute: number = 10): boolean {
+export function checkConnectionLimit(
+  ip: string,
+  maxPerMinute: number = 10,
+): boolean {
   const now = Date.now();
   const key = `conn:${ip}`;
-  
+
   const attempts = connectionAttempts.get(key) || [];
-  
+
   // Remove old attempts (older than 1 minute)
-  const recentAttempts = attempts.filter(t => now - t < 60000);
-  
+  const recentAttempts = attempts.filter((t) => now - t < 60000);
+
   if (recentAttempts.length >= maxPerMinute) {
     return false;
   }
-  
+
   recentAttempts.push(now);
   connectionAttempts.set(key, recentAttempts);
-  
+
   return true;
 }
 
@@ -293,7 +320,7 @@ export function checkConnectionLimit(ip: string, maxPerMinute: number = 10): boo
 setInterval(() => {
   const now = Date.now();
   for (const [key, attempts] of connectionAttempts.entries()) {
-    const recent = attempts.filter(t => now - t < 60000);
+    const recent = attempts.filter((t) => now - t < 60000);
     if (recent.length === 0) {
       connectionAttempts.delete(key);
     } else {
@@ -313,4 +340,3 @@ export default {
   checkConnectionLimit,
   LIMITS,
 };
-

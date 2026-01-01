@@ -1,6 +1,6 @@
 /**
  * Scalable Video Sync Server
- * 
+ *
  * Production-ready architecture for 100,000+ concurrent users:
  * - Redis pub/sub for cross-server communication
  * - Room-based sharding for efficient broadcasting
@@ -8,16 +8,25 @@
  * - Message batching for reduced overhead
  */
 
-import { createServer, IncomingMessage, ServerResponse } from 'http';
-import { parse } from 'url';
-import next from 'next';
-import { Server, Socket } from 'socket.io';
-import { createAdapter } from '@socket.io/redis-adapter';
+import { createServer, IncomingMessage, ServerResponse } from "http";
+import { parse } from "url";
+import next from "next";
+import { Server, Socket } from "socket.io";
+import { createAdapter } from "@socket.io/redis-adapter";
 
 // Import scaling modules
-import { initRedis, getPubSubClients, isRedisConnected, closeRedis } from './lib/redis';
-import roomManager, { User, CursorData, VideoState } from './lib/roomManager';
-import { checkRateLimit, checkConnectionLimit, RateLimitAction } from './lib/rateLimiter';
+import {
+  initRedis,
+  getPubSubClients,
+  isRedisConnected,
+  closeRedis,
+} from "./lib/redis";
+import roomManager, { User, CursorData, VideoState } from "./lib/roomManager";
+import {
+  checkRateLimit,
+  checkConnectionLimit,
+  RateLimitAction,
+} from "./lib/rateLimiter";
 
 // ═══════════════════════════════════════════════════════════════════
 // TYPES
@@ -51,9 +60,9 @@ interface SocketData {
 // CONFIGURATION
 // ═══════════════════════════════════════════════════════════════════
 
-const dev = process.env.NODE_ENV !== 'production';
-const hostname = process.env.HOSTNAME || 'localhost';
-const port = parseInt(process.env.PORT || '3000', 10);
+const dev = process.env.NODE_ENV !== "production";
+const hostname = process.env.HOSTNAME || "localhost";
+const port = parseInt(process.env.PORT || "3000", 10);
 const INSTANCE_ID = process.env.INSTANCE_ID || `instance-${process.pid}`;
 
 const app = next({ dev, hostname, port });
@@ -65,67 +74,68 @@ const handle = app.getRequestHandler();
 
 const TIMEZONE_MAP: Record<string, { name: string; flag: string }> = {
   // Europe
-  'Europe/Berlin': { name: 'Berlin', flag: '🇩🇪' },
-  'Europe/London': { name: 'London', flag: '🇬🇧' },
-  'Europe/Paris': { name: 'Paris', flag: '🇫🇷' },
-  'Europe/Rome': { name: 'Rome', flag: '🇮🇹' },
-  'Europe/Madrid': { name: 'Madrid', flag: '🇪🇸' },
-  'Europe/Amsterdam': { name: 'Amsterdam', flag: '🇳🇱' },
-  'Europe/Vienna': { name: 'Vienna', flag: '🇦🇹' },
-  'Europe/Zurich': { name: 'Zurich', flag: '🇨🇭' },
-  'Europe/Stockholm': { name: 'Stockholm', flag: '🇸🇪' },
-  'Europe/Oslo': { name: 'Oslo', flag: '🇳🇴' },
-  'Europe/Copenhagen': { name: 'Copenhagen', flag: '🇩🇰' },
-  'Europe/Helsinki': { name: 'Helsinki', flag: '🇫🇮' },
-  'Europe/Warsaw': { name: 'Warsaw', flag: '🇵🇱' },
-  'Europe/Prague': { name: 'Prague', flag: '🇨🇿' },
-  'Europe/Brussels': { name: 'Brussels', flag: '🇧🇪' },
-  'Europe/Dublin': { name: 'Dublin', flag: '🇮🇪' },
-  'Europe/Lisbon': { name: 'Lisbon', flag: '🇵🇹' },
-  'Europe/Athens': { name: 'Athens', flag: '🇬🇷' },
-  'Europe/Moscow': { name: 'Moscow', flag: '🇷🇺' },
+  "Europe/Berlin": { name: "Berlin", flag: "🇩🇪" },
+  "Europe/London": { name: "London", flag: "🇬🇧" },
+  "Europe/Paris": { name: "Paris", flag: "🇫🇷" },
+  "Europe/Rome": { name: "Rome", flag: "🇮🇹" },
+  "Europe/Madrid": { name: "Madrid", flag: "🇪🇸" },
+  "Europe/Amsterdam": { name: "Amsterdam", flag: "🇳🇱" },
+  "Europe/Vienna": { name: "Vienna", flag: "🇦🇹" },
+  "Europe/Zurich": { name: "Zurich", flag: "🇨🇭" },
+  "Europe/Stockholm": { name: "Stockholm", flag: "🇸🇪" },
+  "Europe/Oslo": { name: "Oslo", flag: "🇳🇴" },
+  "Europe/Copenhagen": { name: "Copenhagen", flag: "🇩🇰" },
+  "Europe/Helsinki": { name: "Helsinki", flag: "🇫🇮" },
+  "Europe/Warsaw": { name: "Warsaw", flag: "🇵🇱" },
+  "Europe/Prague": { name: "Prague", flag: "🇨🇿" },
+  "Europe/Brussels": { name: "Brussels", flag: "🇧🇪" },
+  "Europe/Dublin": { name: "Dublin", flag: "🇮🇪" },
+  "Europe/Lisbon": { name: "Lisbon", flag: "🇵🇹" },
+  "Europe/Athens": { name: "Athens", flag: "🇬🇷" },
+  "Europe/Moscow": { name: "Moscow", flag: "🇷🇺" },
   // Americas
-  'America/New_York': { name: 'New York', flag: '🇺🇸' },
-  'America/Los_Angeles': { name: 'Los Angeles', flag: '🇺🇸' },
-  'America/Chicago': { name: 'Chicago', flag: '🇺🇸' },
-  'America/Denver': { name: 'Denver', flag: '🇺🇸' },
-  'America/Toronto': { name: 'Toronto', flag: '🇨🇦' },
-  'America/Vancouver': { name: 'Vancouver', flag: '🇨🇦' },
-  'America/Mexico_City': { name: 'Mexico City', flag: '🇲🇽' },
-  'America/Sao_Paulo': { name: 'São Paulo', flag: '🇧🇷' },
-  'America/Buenos_Aires': { name: 'Buenos Aires', flag: '🇦🇷' },
+  "America/New_York": { name: "New York", flag: "🇺🇸" },
+  "America/Los_Angeles": { name: "Los Angeles", flag: "🇺🇸" },
+  "America/Chicago": { name: "Chicago", flag: "🇺🇸" },
+  "America/Denver": { name: "Denver", flag: "🇺🇸" },
+  "America/Toronto": { name: "Toronto", flag: "🇨🇦" },
+  "America/Vancouver": { name: "Vancouver", flag: "🇨🇦" },
+  "America/Mexico_City": { name: "Mexico City", flag: "🇲🇽" },
+  "America/Sao_Paulo": { name: "São Paulo", flag: "🇧🇷" },
+  "America/Buenos_Aires": { name: "Buenos Aires", flag: "🇦🇷" },
   // Asia
-  'Asia/Tokyo': { name: 'Tokyo', flag: '🇯🇵' },
-  'Asia/Shanghai': { name: 'Shanghai', flag: '🇨🇳' },
-  'Asia/Hong_Kong': { name: 'Hong Kong', flag: '🇭🇰' },
-  'Asia/Singapore': { name: 'Singapore', flag: '🇸🇬' },
-  'Asia/Seoul': { name: 'Seoul', flag: '🇰🇷' },
-  'Asia/Dubai': { name: 'Dubai', flag: '🇦🇪' },
-  'Asia/Kolkata': { name: 'Mumbai', flag: '🇮🇳' },
-  'Asia/Bangkok': { name: 'Bangkok', flag: '🇹🇭' },
-  'Asia/Jakarta': { name: 'Jakarta', flag: '🇮🇩' },
+  "Asia/Tokyo": { name: "Tokyo", flag: "🇯🇵" },
+  "Asia/Shanghai": { name: "Shanghai", flag: "🇨🇳" },
+  "Asia/Hong_Kong": { name: "Hong Kong", flag: "🇭🇰" },
+  "Asia/Singapore": { name: "Singapore", flag: "🇸🇬" },
+  "Asia/Seoul": { name: "Seoul", flag: "🇰🇷" },
+  "Asia/Dubai": { name: "Dubai", flag: "🇦🇪" },
+  "Asia/Kolkata": { name: "Mumbai", flag: "🇮🇳" },
+  "Asia/Bangkok": { name: "Bangkok", flag: "🇹🇭" },
+  "Asia/Jakarta": { name: "Jakarta", flag: "🇮🇩" },
   // Oceania
-  'Australia/Sydney': { name: 'Sydney', flag: '🇦🇺' },
-  'Australia/Melbourne': { name: 'Melbourne', flag: '🇦🇺' },
-  'Pacific/Auckland': { name: 'Auckland', flag: '🇳🇿' },
+  "Australia/Sydney": { name: "Sydney", flag: "🇦🇺" },
+  "Australia/Melbourne": { name: "Melbourne", flag: "🇦🇺" },
+  "Pacific/Auckland": { name: "Auckland", flag: "🇳🇿" },
   // Africa
-  'Africa/Cairo': { name: 'Cairo', flag: '🇪🇬' },
-  'Africa/Johannesburg': { name: 'Johannesburg', flag: '🇿🇦' },
-  'Africa/Lagos': { name: 'Lagos', flag: '🇳🇬' },
+  "Africa/Cairo": { name: "Cairo", flag: "🇪🇬" },
+  "Africa/Johannesburg": { name: "Johannesburg", flag: "🇿🇦" },
+  "Africa/Lagos": { name: "Lagos", flag: "🇳🇬" },
 };
 
 function getCityFromTimezone(timezone: string): CityInfo {
   if (TIMEZONE_MAP[timezone]) {
     return { ...TIMEZONE_MAP[timezone], timezone };
   }
-  const parts = timezone.split('/');
-  const cityName = parts[parts.length - 1].replace(/_/g, ' ');
-  let flag = '🌍';
-  if (timezone.startsWith('Europe/')) flag = '🇪🇺';
-  else if (timezone.startsWith('America/')) flag = '🌎';
-  else if (timezone.startsWith('Asia/')) flag = '🌏';
-  else if (timezone.startsWith('Australia/') || timezone.startsWith('Pacific/')) flag = '🌏';
-  else if (timezone.startsWith('Africa/')) flag = '🌍';
+  const parts = timezone.split("/");
+  const cityName = parts[parts.length - 1].replace(/_/g, " ");
+  let flag = "🌍";
+  if (timezone.startsWith("Europe/")) flag = "🇪🇺";
+  else if (timezone.startsWith("America/")) flag = "🌎";
+  else if (timezone.startsWith("Asia/")) flag = "🌏";
+  else if (timezone.startsWith("Australia/") || timezone.startsWith("Pacific/"))
+    flag = "🌏";
+  else if (timezone.startsWith("Africa/")) flag = "🌍";
   return { name: cityName, flag, timezone };
 }
 
@@ -176,26 +186,28 @@ function batchReaction(roomId: string, reaction: Reaction): void {
 async function startServer(): Promise<void> {
   // Initialize Redis (optional - server works without it)
   const { pubClient, subClient } = await initRedis();
-  
+
   // Ensure default room exists
   await roomManager.ensureDefaultRoom();
 
   await app.prepare();
 
-  const httpServer = createServer((req: IncomingMessage, res: ServerResponse) => {
-    const parsedUrl = parse(req.url || '', true);
-    handle(req, res, parsedUrl);
-  });
+  const httpServer = createServer(
+    (req: IncomingMessage, res: ServerResponse) => {
+      const parsedUrl = parse(req.url || "", true);
+      handle(req, res, parsedUrl);
+    },
+  );
 
   const io = new Server(httpServer, {
     cors: {
-      origin: '*',
-      methods: ['GET', 'POST'],
+      origin: "*",
+      methods: ["GET", "POST"],
     },
     // Connection settings for scale
     pingTimeout: 60000,
     pingInterval: 25000,
-    transports: ['websocket', 'polling'],
+    transports: ["websocket", "polling"],
     allowUpgrades: true,
   });
 
@@ -211,7 +223,7 @@ async function startServer(): Promise<void> {
   // CONNECTION HANDLING
   // ═══════════════════════════════════════════════════════════════════
 
-  io.on('connection', async (socket: Socket) => {
+  io.on("connection", async (socket: Socket) => {
     // Rate limit connections by IP
     const clientIP = socket.handshake.address;
     if (!checkConnectionLimit(clientIP, 20)) {
@@ -221,10 +233,11 @@ async function startServer(): Promise<void> {
     }
 
     const userId = generateUserId();
-    const clientTimezone = (socket.handshake.query.timezone as string) || 'UTC';
-    const requestedRoom = (socket.handshake.query.room as string) || roomManager.DEFAULT_ROOM_ID;
+    const clientTimezone = (socket.handshake.query.timezone as string) || "UTC";
+    const requestedRoom =
+      (socket.handshake.query.room as string) || roomManager.DEFAULT_ROOM_ID;
     const userCity = getCityFromTimezone(clientTimezone);
-    
+
     const userData: User = {
       id: userId,
       city: userCity.name,
@@ -241,10 +254,12 @@ async function startServer(): Promise<void> {
     socketData.userData = userData;
     socketData.currentRoom = null;
 
-    console.log(`[${INSTANCE_ID}] User connected: ${userId} from ${userCity.name}`);
+    console.log(
+      `[${INSTANCE_ID}] User connected: ${userId} from ${userCity.name}`,
+    );
 
     // Send user their own data
-    socket.emit('user:self', userData);
+    socket.emit("user:self", userData);
 
     // ═══════════════════════════════════════════════════════════════════
     // ROOM MANAGEMENT
@@ -252,16 +267,22 @@ async function startServer(): Promise<void> {
 
     async function joinRoom(roomId: string): Promise<boolean> {
       const data = socket.data as SocketData;
-      
+
       // Leave current room if any
       if (data.currentRoom) {
         await leaveRoom(data.currentRoom);
       }
 
       // Rate limit room joins
-      const rateCheck = await checkRateLimit(userId, 'roomJoin' as RateLimitAction);
+      const rateCheck = await checkRateLimit(
+        userId,
+        "roomJoin" as RateLimitAction,
+      );
       if (!rateCheck.allowed) {
-        socket.emit('error:ratelimit', { action: 'roomJoin', retryIn: rateCheck.resetIn });
+        socket.emit("error:ratelimit", {
+          action: "roomJoin",
+          retryIn: rateCheck.resetIn,
+        });
         return false;
       }
 
@@ -283,7 +304,7 @@ async function startServer(): Promise<void> {
       const users = await roomManager.getRoomUsers(roomId);
 
       // Send room state to new user
-      socket.emit('room:joined', {
+      socket.emit("room:joined", {
         roomId,
         room,
         videoState,
@@ -291,10 +312,10 @@ async function startServer(): Promise<void> {
       });
 
       // Notify others in room
-      socket.to(roomId).emit('user:joined', userData);
-      
+      socket.to(roomId).emit("user:joined", userData);
+
       // Broadcast updated user list to room
-      io.to(roomId).emit('users:list', Object.values(users));
+      io.to(roomId).emit("users:list", Object.values(users));
 
       console.log(`[${INSTANCE_ID}] ${userId} joined room ${roomId}`);
       return true;
@@ -309,12 +330,12 @@ async function startServer(): Promise<void> {
       await roomManager.removeCursor(roomId, userId);
 
       // Notify others
-      socket.to(roomId).emit('user:left', { userId });
-      socket.to(roomId).emit('cursor:remove', userId);
+      socket.to(roomId).emit("user:left", { userId });
+      socket.to(roomId).emit("cursor:remove", userId);
 
       // Update user list
       const users = await roomManager.getRoomUsers(roomId);
-      io.to(roomId).emit('users:list', Object.values(users));
+      io.to(roomId).emit("users:list", Object.values(users));
 
       data.currentRoom = null;
       console.log(`[${INSTANCE_ID}] ${userId} left room ${roomId}`);
@@ -324,24 +345,24 @@ async function startServer(): Promise<void> {
     await joinRoom(requestedRoom);
 
     // Handle room join request
-    socket.on('room:join', async (roomId: string) => {
+    socket.on("room:join", async (roomId: string) => {
       await joinRoom(roomId || roomManager.DEFAULT_ROOM_ID);
     });
 
     // Handle room leave request
-    socket.on('room:leave', async () => {
+    socket.on("room:leave", async () => {
       const data = socket.data as SocketData;
       await leaveRoom(data.currentRoom);
     });
 
     // Get available rooms
-    socket.on('rooms:list', async (callback: (rooms: unknown[]) => void) => {
+    socket.on("rooms:list", async (callback: (rooms: unknown[]) => void) => {
       const rooms = await roomManager.getAllRooms();
       const roomsWithCounts = await Promise.all(
         rooms.map(async (room) => ({
           ...room,
           userCount: await roomManager.getRoomUserCount(room.id),
-        }))
+        })),
       );
       callback?.(roomsWithCounts);
     });
@@ -350,12 +371,12 @@ async function startServer(): Promise<void> {
     // TIME SYNC
     // ═══════════════════════════════════════════════════════════════════
 
-    socket.on('time:sync', async (clientTimestamp: number) => {
-      const rateCheck = await checkRateLimit(userId, 'sync' as RateLimitAction);
+    socket.on("time:sync", async (clientTimestamp: number) => {
+      const rateCheck = await checkRateLimit(userId, "sync" as RateLimitAction);
       if (!rateCheck.allowed) return;
 
       const serverReceiveTime = Date.now();
-      socket.emit('time:sync:response', {
+      socket.emit("time:sync:response", {
         clientTimestamp,
         serverReceiveTime,
         serverSendTime: Date.now(),
@@ -366,12 +387,15 @@ async function startServer(): Promise<void> {
     // VIDEO SYNC (Room-scoped)
     // ═══════════════════════════════════════════════════════════════════
 
-    socket.on('video:play', async () => {
+    socket.on("video:play", async () => {
       const data = socket.data as SocketData;
       const roomId = data.currentRoom;
       if (!roomId) return;
 
-      const rateCheck = await checkRateLimit(userId, 'videoControl' as RateLimitAction);
+      const rateCheck = await checkRateLimit(
+        userId,
+        "videoControl" as RateLimitAction,
+      );
       if (!rateCheck.allowed) return;
 
       const state = await roomManager.updateVideoTime(roomId);
@@ -379,32 +403,42 @@ async function startServer(): Promise<void> {
       state.lastUpdateTime = Date.now();
       await roomManager.setVideoState(roomId, state);
 
-      console.log(`[${INSTANCE_ID}] Video play in ${roomId} by ${userData.city}`);
-      io.to(roomId).emit('video:state', state);
+      console.log(
+        `[${INSTANCE_ID}] Video play in ${roomId} by ${userData.city}`,
+      );
+      io.to(roomId).emit("video:state", state);
     });
 
-    socket.on('video:pause', async () => {
+    socket.on("video:pause", async () => {
       const data = socket.data as SocketData;
       const roomId = data.currentRoom;
       if (!roomId) return;
 
-      const rateCheck = await checkRateLimit(userId, 'videoControl' as RateLimitAction);
+      const rateCheck = await checkRateLimit(
+        userId,
+        "videoControl" as RateLimitAction,
+      );
       if (!rateCheck.allowed) return;
 
       const state = await roomManager.updateVideoTime(roomId);
       state.isPlaying = false;
       await roomManager.setVideoState(roomId, state);
 
-      console.log(`[${INSTANCE_ID}] Video pause in ${roomId} by ${userData.city}`);
-      io.to(roomId).emit('video:state', state);
+      console.log(
+        `[${INSTANCE_ID}] Video pause in ${roomId} by ${userData.city}`,
+      );
+      io.to(roomId).emit("video:state", state);
     });
 
-    socket.on('video:seek', async (time: number) => {
+    socket.on("video:seek", async (time: number) => {
       const data = socket.data as SocketData;
       const roomId = data.currentRoom;
       if (!roomId) return;
 
-      const rateCheck = await checkRateLimit(userId, 'videoControl' as RateLimitAction);
+      const rateCheck = await checkRateLimit(
+        userId,
+        "videoControl" as RateLimitAction,
+      );
       if (!rateCheck.allowed) return;
 
       const state = await roomManager.getVideoState(roomId);
@@ -412,20 +446,25 @@ async function startServer(): Promise<void> {
       state.lastUpdateTime = Date.now();
       await roomManager.setVideoState(roomId, state);
 
-      console.log(`[${INSTANCE_ID}] Video seek in ${roomId} to ${time.toFixed(2)}s by ${userData.city}`);
-      io.to(roomId).emit('video:state', state);
+      console.log(
+        `[${INSTANCE_ID}] Video seek in ${roomId} to ${time.toFixed(2)}s by ${userData.city}`,
+      );
+      io.to(roomId).emit("video:state", state);
     });
 
     // ═══════════════════════════════════════════════════════════════════
     // CURSOR TRACKING (Batched)
     // ═══════════════════════════════════════════════════════════════════
 
-    socket.on('cursor:move', async ({ x, y }: { x: number; y: number }) => {
+    socket.on("cursor:move", async ({ x, y }: { x: number; y: number }) => {
       const data = socket.data as SocketData;
       const roomId = data.currentRoom;
       if (!roomId) return;
 
-      const rateCheck = await checkRateLimit(userId, 'cursor' as RateLimitAction);
+      const rateCheck = await checkRateLimit(
+        userId,
+        "cursor" as RateLimitAction,
+      );
       if (!rateCheck.allowed) return;
 
       const cursorData: CursorData = {
@@ -448,37 +487,55 @@ async function startServer(): Promise<void> {
     // REACTIONS (Batched)
     // ═══════════════════════════════════════════════════════════════════
 
-    socket.on('reaction:send', async ({ emoji, x, y, videoTime }: { emoji: string; x: number; y: number; videoTime: number }) => {
-      const data = socket.data as SocketData;
-      const roomId = data.currentRoom;
-      if (!roomId) return;
-
-      const rateCheck = await checkRateLimit(userId, 'reaction' as RateLimitAction);
-      if (!rateCheck.allowed) return;
-
-      const reaction: Reaction = {
-        id: generateReactionId(),
-        userId: userData.id,
-        city: userData.city,
-        flag: userData.flag,
+    socket.on(
+      "reaction:send",
+      async ({
         emoji,
         x,
         y,
         videoTime,
-        timestamp: Date.now(),
-      };
+      }: {
+        emoji: string;
+        x: number;
+        y: number;
+        videoTime: number;
+      }) => {
+        const data = socket.data as SocketData;
+        const roomId = data.currentRoom;
+        if (!roomId) return;
 
-      // Batch reaction
-      batchReaction(roomId, reaction);
-      
-      console.log(`[${INSTANCE_ID}] Reaction ${emoji} in ${roomId} from ${userData.city}`);
-    });
+        const rateCheck = await checkRateLimit(
+          userId,
+          "reaction" as RateLimitAction,
+        );
+        if (!rateCheck.allowed) return;
+
+        const reaction: Reaction = {
+          id: generateReactionId(),
+          userId: userData.id,
+          city: userData.city,
+          flag: userData.flag,
+          emoji,
+          x,
+          y,
+          videoTime,
+          timestamp: Date.now(),
+        };
+
+        // Batch reaction
+        batchReaction(roomId, reaction);
+
+        console.log(
+          `[${INSTANCE_ID}] Reaction ${emoji} in ${roomId} from ${userData.city}`,
+        );
+      },
+    );
 
     // ═══════════════════════════════════════════════════════════════════
     // HEARTBEAT
     // ═══════════════════════════════════════════════════════════════════
 
-    socket.on('heartbeat', async () => {
+    socket.on("heartbeat", async () => {
       const data = socket.data as SocketData;
       const roomId = data.currentRoom;
       if (!roomId) return;
@@ -491,7 +548,7 @@ async function startServer(): Promise<void> {
     // DISCONNECT
     // ═══════════════════════════════════════════════════════════════════
 
-    socket.on('disconnect', async () => {
+    socket.on("disconnect", async () => {
       const data = socket.data as SocketData;
       console.log(`[${INSTANCE_ID}] User disconnected: ${userId}`);
       await leaveRoom(data.currentRoom);
@@ -507,7 +564,7 @@ async function startServer(): Promise<void> {
     for (const [roomId, cursors] of cursorBatches.entries()) {
       if (cursors.size > 0) {
         // Send all cursors as a batch
-        io.to(roomId).emit('cursors:batch', Array.from(cursors.values()));
+        io.to(roomId).emit("cursors:batch", Array.from(cursors.values()));
         cursors.clear();
       }
     }
@@ -518,7 +575,7 @@ async function startServer(): Promise<void> {
     for (const [roomId, reactions] of reactionBatches.entries()) {
       if (reactions.length > 0) {
         // Send all reactions as a batch
-        io.to(roomId).emit('reactions:batch', reactions);
+        io.to(roomId).emit("reactions:batch", reactions);
         reactionBatches.set(roomId, []);
       }
     }
@@ -530,7 +587,7 @@ async function startServer(): Promise<void> {
 
   // Broadcast server time every second (for sync verification)
   setInterval(() => {
-    io.emit('server:time', Date.now());
+    io.emit("server:time", Date.now());
   }, 1000);
 
   // Update and broadcast video state every 500ms per room
@@ -539,7 +596,7 @@ async function startServer(): Promise<void> {
     for (const room of rooms) {
       try {
         const state = await roomManager.updateVideoTime(room.id);
-        io.to(room.id).emit('video:state', state);
+        io.to(room.id).emit("video:state", state);
       } catch (err) {
         console.error(`Error updating video state for room ${room.id}:`, err);
       }
@@ -555,15 +612,17 @@ async function startServer(): Promise<void> {
   // GRACEFUL SHUTDOWN
   // ═══════════════════════════════════════════════════════════════════
 
-  process.on('SIGTERM', async () => {
-    console.log(`[${INSTANCE_ID}] SIGTERM received, shutting down gracefully...`);
-    
+  process.on("SIGTERM", async () => {
+    console.log(
+      `[${INSTANCE_ID}] SIGTERM received, shutting down gracefully...`,
+    );
+
     // Close all connections
     io.close();
-    
+
     // Close Redis
     await closeRedis();
-    
+
     // Close HTTP server
     httpServer.close(() => {
       console.log(`[${INSTANCE_ID}] Server closed`);
@@ -576,8 +635,10 @@ async function startServer(): Promise<void> {
   // ═══════════════════════════════════════════════════════════════════
 
   httpServer.listen(port, () => {
-    const redisStatus = isRedisConnected() ? '✅ Redis Connected (Cluster Mode)' : '⚠️  Standalone Mode (No Redis)';
-    
+    const redisStatus = isRedisConnected()
+      ? "✅ Redis Connected (Cluster Mode)"
+      : "⚠️  Standalone Mode (No Redis)";
+
     console.log(`
 ╔══════════════════════════════════════════════════════════════════════╗
 ║                                                                      ║
@@ -601,7 +662,6 @@ async function startServer(): Promise<void> {
 
 // Start the server
 startServer().catch((err) => {
-  console.error('Failed to start server:', err);
+  console.error("Failed to start server:", err);
   process.exit(1);
 });
-

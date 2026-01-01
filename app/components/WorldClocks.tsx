@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import { Clock } from './Clock';
+import { Clock } from "./Clock";
 
 interface WorldClocksProps {
   getSyncedTimeForTimezone: (timezone: string) => string;
@@ -9,21 +9,22 @@ interface WorldClocksProps {
 }
 
 const WORLD_CITIES = [
-  { city: 'Tokyo', timezone: 'Asia/Tokyo', flag: '🇯🇵' },
-  { city: 'Sydney', timezone: 'Australia/Sydney', flag: '🇦🇺' },
-  { city: 'Dubai', timezone: 'Asia/Dubai', flag: '🇦🇪' },
-  { city: 'London', timezone: 'Europe/London', flag: '🇬🇧' },
-  { city: 'New York', timezone: 'America/New_York', flag: '🇺🇸' },
-  { city: 'Los Angeles', timezone: 'America/Los_Angeles', flag: '🇺🇸' },
+  { city: "Tokyo", timezone: "Asia/Tokyo", flag: "🇯🇵" },
+  { city: "Sydney", timezone: "Australia/Sydney", flag: "🇦🇺" },
+  { city: "Dubai", timezone: "Asia/Dubai", flag: "🇦🇪" },
+  { city: "London", timezone: "Europe/London", flag: "🇬🇧" },
+  { city: "New York", timezone: "America/New_York", flag: "🇺🇸" },
+  { city: "Los Angeles", timezone: "America/Los_Angeles", flag: "🇺🇸" },
 ];
 
-export function WorldClocks({ 
-  getSyncedTimeForTimezone, 
+export function WorldClocks({
+  getSyncedTimeForTimezone,
   getSyncedDateForTimezone,
-  localTimezone 
+  localTimezone,
 }: WorldClocksProps) {
   // Get user's local timezone
-  const userTimezone = localTimezone || Intl.DateTimeFormat().resolvedOptions().timeZone;
+  const userTimezone =
+    localTimezone || Intl.DateTimeFormat().resolvedOptions().timeZone;
 
   return (
     <div className="w-full">
@@ -61,13 +62,16 @@ export function WorldClocks({
           How It Works
         </h3>
         <p className="text-sm text-slate-400 leading-relaxed">
-          All these clocks display the <span className="text-white font-medium">same moment in time</span>, 
-          just in different timezones. The synchronized timestamp from the server is converted to each 
-          timezone using the <code className="px-1.5 py-0.5 bg-slate-700/50 rounded text-cyan-300 text-xs">
-          Intl.DateTimeFormat</code> API. This ensures all users worldwide see consistent, accurate times.
+          All these clocks display the{" "}
+          <span className="text-white font-medium">same moment in time</span>,
+          just in different timezones. The synchronized timestamp from the
+          server is converted to each timezone using the{" "}
+          <code className="px-1.5 py-0.5 bg-slate-700/50 rounded text-cyan-300 text-xs">
+            Intl.DateTimeFormat
+          </code>{" "}
+          API. This ensures all users worldwide see consistent, accurate times.
         </p>
       </div>
     </div>
   );
 }
-

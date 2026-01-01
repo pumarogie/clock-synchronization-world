@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import { motion, AnimatePresence } from 'framer-motion';
-import type { Reaction } from '../hooks/useVideoSync';
+import { motion, AnimatePresence } from "framer-motion";
+import type { Reaction } from "../hooks/useVideoSync";
 
 interface ReactionsProps {
   reactions: Reaction[];
@@ -19,20 +19,20 @@ export function Reactions({ reactions }: ReactionsProps) {
               left: `${reaction.x}%`,
               top: `${reaction.y}%`,
             }}
-            initial={{ 
-              opacity: 1, 
+            initial={{
+              opacity: 1,
               scale: 0,
               y: 0,
             }}
-            animate={{ 
+            animate={{
               opacity: [1, 1, 0],
               scale: [0, 1.5, 1],
               y: -100,
             }}
             exit={{ opacity: 0 }}
-            transition={{ 
+            transition={{
               duration: 2.5,
-              ease: 'easeOut',
+              ease: "easeOut",
               opacity: { times: [0, 0.7, 1] },
               scale: { times: [0, 0.2, 1] },
             }}
@@ -51,8 +51,21 @@ interface EmojiPickerProps {
 }
 
 export function EmojiPicker({ onSelect }: EmojiPickerProps) {
-  const emojis = ['❤️', '🔥', '😂', '😮', '👏', '🎉', '💯', '✨', '😍', '🤯', '👀', '💀'];
-  
+  const emojis = [
+    "❤️",
+    "🔥",
+    "😂",
+    "😮",
+    "👏",
+    "🎉",
+    "💯",
+    "✨",
+    "😍",
+    "🤯",
+    "👀",
+    "💀",
+  ];
+
   return (
     <div className="flex flex-wrap gap-2 p-3 bg-slate-800/80 backdrop-blur-sm rounded-xl border border-slate-700/50">
       {emojis.map((emoji) => (
@@ -69,4 +82,3 @@ export function EmojiPicker({ onSelect }: EmojiPickerProps) {
     </div>
   );
 }
-

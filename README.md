@@ -11,6 +11,7 @@ Built with Next.js 16, React 19, Socket.io, and Redis — scalable to **100,000+
 ## ✨ Features
 
 ### Time Synchronization
+
 - **NTP-style algorithm** with T1-T4 timestamp exchange
 - **Clock offset calculation** with sub-millisecond precision
 - **Exponential smoothing** for jitter reduction
@@ -18,6 +19,7 @@ Built with Next.js 16, React 19, Socket.io, and Redis — scalable to **100,000+
 - **Drift simulator** to understand clock correction
 
 ### Watch Party (Video Sync)
+
 - **Server-authoritative playback** — single source of truth
 - **Optimistic updates** — instant local feedback
 - **Rubber-banding sync** — smooth catch-up without jarring jumps
@@ -26,6 +28,7 @@ Built with Next.js 16, React 19, Socket.io, and Redis — scalable to **100,000+
 - **Buffering detection** — pause sync during loading
 
 ### Scaling Features
+
 - **Redis pub/sub** — cross-server communication
 - **Room-based sharding** — partition by video/stream
 - **Rate limiting** — abuse prevention (20 cursors/s, 5 reactions/s)
@@ -38,6 +41,7 @@ Built with Next.js 16, React 19, Socket.io, and Redis — scalable to **100,000+
 ## 🏗️ Architecture
 
 ### Single Server Mode (Development)
+
 ```
 ┌─────────────────────────────────────────┐
 │              Next.js + Socket.io        │
@@ -54,6 +58,7 @@ Built with Next.js 16, React 19, Socket.io, and Redis — scalable to **100,000+
 ```
 
 ### Clustered Mode (Production)
+
 ```
                     ┌─────────────────┐
                     │     Nginx       │
@@ -82,6 +87,7 @@ Built with Next.js 16, React 19, Socket.io, and Redis — scalable to **100,000+
 ## 🚀 Quick Start
 
 ### Prerequisites
+
 - Node.js 20+
 - npm/pnpm/yarn
 - Redis (optional, for scaling)
@@ -198,13 +204,13 @@ clock-synchronization-world/
 
 ### Environment Variables
 
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `NODE_ENV` | `development` | Environment mode |
-| `PORT` | `3000` | Server port |
-| `REDIS_URL` | `redis://localhost:6379` | Redis connection URL |
-| `INSTANCE_ID` | Auto-generated | Unique instance identifier |
-| `HOSTNAME` | `localhost` | Server hostname |
+| Variable      | Default                  | Description                |
+| ------------- | ------------------------ | -------------------------- |
+| `NODE_ENV`    | `development`            | Environment mode           |
+| `PORT`        | `3000`                   | Server port                |
+| `REDIS_URL`   | `redis://localhost:6379` | Redis connection URL       |
+| `INSTANCE_ID` | Auto-generated           | Unique instance identifier |
+| `HOSTNAME`    | `localhost`              | Server hostname            |
 
 ### Sync Configuration
 
@@ -212,12 +218,12 @@ Edit `app/hooks/useVideoSync.ts`:
 
 ```typescript
 const SYNC_CONFIG = {
-  SYNC_INTERVAL: 100,           // Check sync every 100ms
-  DRIFT_THRESHOLD_SEEK: 1.5,    // Hard seek if >1.5s drift
+  SYNC_INTERVAL: 100, // Check sync every 100ms
+  DRIFT_THRESHOLD_SEEK: 1.5, // Hard seek if >1.5s drift
   DRIFT_THRESHOLD_ADJUST: 0.05, // Rubber-band at 50ms drift
-  MAX_SPEEDUP: 1.08,            // Max 8% speedup
-  MAX_SLOWDOWN: 0.92,           // Max 8% slowdown
-  USER_ACTION_COOLDOWN: 500,    // Ignore sync 500ms after user action
+  MAX_SPEEDUP: 1.08, // Max 8% speedup
+  MAX_SLOWDOWN: 0.92, // Max 8% slowdown
+  USER_ACTION_COOLDOWN: 500, // Ignore sync 500ms after user action
 };
 ```
 
@@ -227,9 +233,9 @@ Edit `lib/rateLimiter.js`:
 
 ```javascript
 const LIMITS = {
-  cursor: { max: 20, windowMs: 1000 },      // 20/second
-  reaction: { max: 5, windowMs: 1000 },     // 5/second
-  sync: { max: 10, windowMs: 1000 },        // 10/second
+  cursor: { max: 20, windowMs: 1000 }, // 20/second
+  reaction: { max: 5, windowMs: 1000 }, // 5/second
+  sync: { max: 10, windowMs: 1000 }, // 10/second
   videoControl: { max: 10, windowMs: 1000 }, // 10/second
 };
 ```
@@ -240,30 +246,30 @@ const LIMITS = {
 
 ### Client → Server
 
-| Event | Payload | Description |
-|-------|---------|-------------|
-| `room:join` | `roomId: string` | Join a watch party room |
-| `room:leave` | — | Leave current room |
-| `video:play` | — | Start video playback |
-| `video:pause` | — | Pause video playback |
-| `video:seek` | `time: number` | Seek to position |
-| `cursor:move` | `{ x, y }` | Update cursor position |
-| `reaction:send` | `{ emoji, x, y, videoTime }` | Send reaction |
-| `time:sync` | `clientTimestamp` | Request time sync |
-| `heartbeat` | — | Keep connection alive |
+| Event           | Payload                      | Description             |
+| --------------- | ---------------------------- | ----------------------- |
+| `room:join`     | `roomId: string`             | Join a watch party room |
+| `room:leave`    | —                            | Leave current room      |
+| `video:play`    | —                            | Start video playback    |
+| `video:pause`   | —                            | Pause video playback    |
+| `video:seek`    | `time: number`               | Seek to position        |
+| `cursor:move`   | `{ x, y }`                   | Update cursor position  |
+| `reaction:send` | `{ emoji, x, y, videoTime }` | Send reaction           |
+| `time:sync`     | `clientTimestamp`            | Request time sync       |
+| `heartbeat`     | —                            | Keep connection alive   |
 
 ### Server → Client
 
-| Event | Payload | Description |
-|-------|---------|-------------|
-| `user:self` | `User` | Your user data |
-| `users:list` | `User[]` | All users in room |
-| `room:joined` | `{ roomId, room, videoState, users }` | Room join confirmation |
-| `video:state` | `VideoState` | Current video state |
-| `cursors:batch` | `Cursor[]` | Batched cursor updates |
-| `reactions:batch` | `Reaction[]` | Batched reactions |
-| `server:time` | `timestamp` | Server time broadcast |
-| `error:ratelimit` | `{ action, retryIn }` | Rate limit error |
+| Event             | Payload                               | Description            |
+| ----------------- | ------------------------------------- | ---------------------- |
+| `user:self`       | `User`                                | Your user data         |
+| `users:list`      | `User[]`                              | All users in room      |
+| `room:joined`     | `{ roomId, room, videoState, users }` | Room join confirmation |
+| `video:state`     | `VideoState`                          | Current video state    |
+| `cursors:batch`   | `Cursor[]`                            | Batched cursor updates |
+| `reactions:batch` | `Reaction[]`                          | Batched reactions      |
+| `server:time`     | `timestamp`                           | Server time broadcast  |
+| `error:ratelimit` | `{ action, retryIn }`                 | Rate limit error       |
 
 ---
 
@@ -285,6 +291,7 @@ RTT = (T4 - T1) - (T3 - T2)
 ```
 
 **Why it works:**
+
 - Assumes symmetric network delays
 - Averages forward and return delays
 - Excludes server processing time from RTT
@@ -326,22 +333,22 @@ if (Math.abs(drift) > 1.5) {
 
 ### Capacity Estimates
 
-| Configuration | Concurrent Users | Infrastructure |
-|---------------|------------------|----------------|
-| Single server | ~10,000 | 1 Node.js process |
-| PM2 cluster (4 cores) | ~40,000 | 4 processes + Redis |
-| Docker (10 containers) | ~100,000 | 10 servers + Redis |
-| Kubernetes + regional | ~1,000,000+ | Multi-region |
+| Configuration          | Concurrent Users | Infrastructure      |
+| ---------------------- | ---------------- | ------------------- |
+| Single server          | ~10,000          | 1 Node.js process   |
+| PM2 cluster (4 cores)  | ~40,000          | 4 processes + Redis |
+| Docker (10 containers) | ~100,000         | 10 servers + Redis  |
+| Kubernetes + regional  | ~1,000,000+      | Multi-region        |
 
 ### Bottlenecks & Solutions
 
-| Bottleneck | Solution |
-|------------|----------|
+| Bottleneck           | Solution                      |
+| -------------------- | ----------------------------- |
 | Single process limit | PM2 cluster / Docker replicas |
-| Cross-server state | Redis pub/sub adapter |
-| Broadcast overhead | Room-based sharding |
-| Network latency | Regional edge servers |
-| Message volume | Batching + rate limiting |
+| Cross-server state   | Redis pub/sub adapter         |
+| Broadcast overhead   | Room-based sharding           |
+| Network latency      | Regional edge servers         |
+| Message volume       | Batching + rate limiting      |
 
 ### Redis Sentinel (High Availability)
 
@@ -351,7 +358,7 @@ services:
   redis-master:
     image: redis:7-alpine
     command: redis-server --appendonly yes
-    
+
   redis-sentinel:
     image: redis:7-alpine
     command: redis-sentinel /etc/redis/sentinel.conf
@@ -425,7 +432,7 @@ io.use((socket, next) => {
     socket.data.userId = user.id;
     next();
   } catch (err) {
-    next(new Error('Authentication failed'));
+    next(new Error("Authentication failed"));
   }
 });
 ```

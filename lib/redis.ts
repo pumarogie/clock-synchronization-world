@@ -1,6 +1,6 @@
 /**
  * Redis Client Singleton
- * 
+ *
  * Provides a shared Redis client for:
  * - Socket.io adapter (pub/sub)
  * - Room state persistence
@@ -8,9 +8,9 @@
  * - User session management
  */
 
-import { createClient, RedisClientType } from 'redis';
+import { createClient, RedisClientType } from "redis";
 
-const REDIS_URL = process.env.REDIS_URL || 'redis://localhost:6379';
+const REDIS_URL = process.env.REDIS_URL || "redis://localhost:6379";
 
 let redisClient: RedisClientType | null = null;
 let pubClient: RedisClientType | null = null;
@@ -47,17 +47,17 @@ export async function initRedis(): Promise<RedisClients> {
 
   try {
     // Main Redis client for general operations
-    redisClient = createClient({ 
+    redisClient = createClient({
       url: REDIS_URL,
       socket: {
         reconnectStrategy: (retries: number) => {
           if (retries > 10) {
-            console.error('Redis: Max reconnection attempts reached');
-            return new Error('Max reconnection attempts reached');
+            console.error("Redis: Max reconnection attempts reached");
+            return new Error("Max reconnection attempts reached");
           }
           return Math.min(retries * 100, 3000);
-        }
-      }
+        },
+      },
     });
 
     // Pub/Sub clients for Socket.io adapter
@@ -65,29 +65,38 @@ export async function initRedis(): Promise<RedisClients> {
     subClient = redisClient.duplicate();
 
     // Error handlers
-    redisClient.on('error', (err: Error) => console.error('Redis Client Error:', err));
-    pubClient.on('error', (err: Error) => console.error('Redis Pub Error:', err));
-    subClient.on('error', (err: Error) => console.error('Redis Sub Error:', err));
+    redisClient.on("error", (err: Error) =>
+      console.error("Redis Client Error:", err),
+    );
+    pubClient.on("error", (err: Error) =>
+      console.error("Redis Pub Error:", err),
+    );
+    subClient.on("error", (err: Error) =>
+      console.error("Redis Sub Error:", err),
+    );
 
     // Connection handlers
-    redisClient.on('connect', () => console.log('Redis: Main client connected'));
-    pubClient.on('connect', () => console.log('Redis: Pub client connected'));
-    subClient.on('connect', () => console.log('Redis: Sub client connected'));
+    redisClient.on("connect", () =>
+      console.log("Redis: Main client connected"),
+    );
+    pubClient.on("connect", () => console.log("Redis: Pub client connected"));
+    subClient.on("connect", () => console.log("Redis: Sub client connected"));
 
     // Connect all clients
     await Promise.all([
       redisClient.connect(),
       pubClient.connect(),
-      subClient.connect()
+      subClient.connect(),
     ]);
 
     isConnectedFlag = true;
-    console.log('Redis: All clients initialized successfully');
+    console.log("Redis: All clients initialized successfully");
 
     return { redisClient, pubClient, subClient };
   } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    console.error('Redis: Failed to initialize:', errorMessage);
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error";
+    console.error("Redis: Failed to initialize:", errorMessage);
     // Return null clients - server will run in standalone mode
     return { redisClient: null, pubClient: null, subClient: null };
   }
@@ -123,7 +132,7 @@ export async function closeRedis(): Promise<void> {
     await pubClient?.quit();
     await subClient?.quit();
     isConnectedFlag = false;
-    console.log('Redis: Connections closed');
+    console.log("Redis: Connections closed");
   }
 }
 
@@ -134,7 +143,11 @@ export async function closeRedis(): Promise<void> {
 /**
  * Set a value with optional expiration
  */
-export async function setWithExpiry<T>(key: string, value: T, expirySeconds: number = 3600): Promise<boolean> {
+export async function setWithExpiry<T>(
+  key: string,
+  value: T,
+  expirySeconds: number = 3600,
+): Promise<boolean> {
   if (!redisClient?.isOpen) return false;
   await redisClient.set(key, JSON.stringify(value), { EX: expirySeconds });
   return true;
@@ -146,13 +159,17 @@ export async function setWithExpiry<T>(key: string, value: T, expirySeconds: num
 export async function getJSON<T>(key: string): Promise<T | null> {
   if (!redisClient?.isOpen) return null;
   const value = await redisClient.get(key);
-  return value ? JSON.parse(value) as T : null;
+  return value ? (JSON.parse(value) as T) : null;
 }
 
 /**
  * Set a hash value
  */
-export async function setHash<T>(key: string, field: string, value: T): Promise<boolean> {
+export async function setHash<T>(
+  key: string,
+  field: string,
+  value: T,
+): Promise<boolean> {
   if (!redisClient?.isOpen) return false;
   await redisClient.hSet(key, field, JSON.stringify(value));
   return true;
@@ -178,7 +195,10 @@ export async function getHashAll<T>(key: string): Promise<Record<string, T>> {
 /**
  * Delete a hash field
  */
-export async function deleteHashField(key: string, field: string): Promise<boolean> {
+export async function deleteHashField(
+  key: string,
+  field: string,
+): Promise<boolean> {
   if (!redisClient?.isOpen) return false;
   await redisClient.hDel(key, field);
   return true;
@@ -187,7 +207,10 @@ export async function deleteHashField(key: string, field: string): Promise<boole
 /**
  * Increment a counter with expiry (for rate limiting)
  */
-export async function incrementWithExpiry(key: string, expirySeconds: number = 1): Promise<number> {
+export async function incrementWithExpiry(
+  key: string,
+  expirySeconds: number = 1,
+): Promise<number> {
   if (!redisClient?.isOpen) return 0;
   const count = await redisClient.incr(key);
   if (count === 1) {
@@ -199,7 +222,11 @@ export async function incrementWithExpiry(key: string, expirySeconds: number = 1
 /**
  * Add to a sorted set with score (for leaderboards, etc.)
  */
-export async function addToSortedSet(key: string, score: number, member: string): Promise<boolean> {
+export async function addToSortedSet(
+  key: string,
+  score: number,
+  member: string,
+): Promise<boolean> {
   if (!redisClient?.isOpen) return false;
   await redisClient.zAdd(key, { score, value: member });
   return true;
@@ -208,7 +235,11 @@ export async function addToSortedSet(key: string, score: number, member: string)
 /**
  * Get members from sorted set by score range
  */
-export async function getSortedSetRange(key: string, start: number = 0, end: number = -1): Promise<string[]> {
+export async function getSortedSetRange(
+  key: string,
+  start: number = 0,
+  end: number = -1,
+): Promise<string[]> {
   if (!redisClient?.isOpen) return [];
   return await redisClient.zRange(key, start, end);
 }
@@ -228,4 +259,3 @@ export default {
   addToSortedSet,
   getSortedSetRange,
 };
-

@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import { motion, AnimatePresence } from 'framer-motion';
-import type { User } from '../hooks/useSocket';
+import { motion, AnimatePresence } from "framer-motion";
+import type { User } from "../hooks/useSocket";
 
 interface UserPresenceProps {
   users: User[];
@@ -10,11 +10,11 @@ interface UserPresenceProps {
   getSyncedTimeForTimezone: (timezone: string) => string;
 }
 
-export function UserPresence({ 
-  users, 
-  currentUser, 
+export function UserPresence({
+  users,
+  currentUser,
   isConnected,
-  getSyncedTimeForTimezone 
+  getSyncedTimeForTimezone,
 }: UserPresenceProps) {
   // Sort users to show current user first
   const sortedUsers = [...users].sort((a, b) => {
@@ -32,12 +32,12 @@ export function UserPresence({
         </h2>
         <div className="flex items-center gap-2">
           <motion.div
-            className={`w-2 h-2 rounded-full ${isConnected ? 'bg-emerald-400' : 'bg-red-400'}`}
+            className={`w-2 h-2 rounded-full ${isConnected ? "bg-emerald-400" : "bg-red-400"}`}
             animate={isConnected ? { scale: [1, 1.2, 1] } : {}}
             transition={{ duration: 2, repeat: Infinity }}
           />
           <span className="text-sm text-slate-400">
-            {isConnected ? `${users.length} online` : 'Disconnected'}
+            {isConnected ? `${users.length} online` : "Disconnected"}
           </span>
         </div>
       </div>
@@ -70,8 +70,8 @@ export function UserPresence({
                 exit={{ opacity: 0, x: 20 }}
                 className={`flex items-center justify-between p-4 rounded-xl transition-all ${
                   isCurrentUser
-                    ? 'bg-linear-to-br from-emerald-500/10 to-cyan-500/10 border border-emerald-500/20'
-                    : 'bg-slate-800/30 border border-slate-700/30 hover:border-slate-600/50'
+                    ? "bg-linear-to-br from-emerald-500/10 to-cyan-500/10 border border-emerald-500/20"
+                    : "bg-slate-800/30 border border-slate-700/30 hover:border-slate-600/50"
                 }`}
               >
                 <div className="flex items-center gap-3">
@@ -83,7 +83,7 @@ export function UserPresence({
                     {/* Online indicator */}
                     <motion.div
                       className={`absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-slate-900 ${
-                        isActive ? 'bg-emerald-400' : 'bg-slate-500'
+                        isActive ? "bg-emerald-400" : "bg-slate-500"
                       }`}
                       animate={isActive ? { scale: [1, 1.2, 1] } : {}}
                       transition={{ duration: 2, repeat: Infinity }}
@@ -114,7 +114,7 @@ export function UserPresence({
                     {getSyncedTimeForTimezone(user.timezone)}
                   </div>
                   <div className="text-xs text-slate-500">
-                    {isActive ? 'Online' : formatLastSeen(timeSinceLastSeen)}
+                    {isActive ? "Online" : formatLastSeen(timeSinceLastSeen)}
                   </div>
                 </div>
               </motion.div>
@@ -126,7 +126,7 @@ export function UserPresence({
           <div className="text-center py-8 text-slate-500">
             <motion.div
               animate={{ rotate: 360 }}
-              transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
+              transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
               className="text-3xl mb-2"
             >
               ⟳
@@ -143,9 +143,11 @@ export function UserPresence({
           Real-time Presence
         </h3>
         <p className="text-sm text-slate-400 leading-relaxed">
-          User presence is synchronized via <span className="text-white font-medium">WebSockets</span>. 
-          Each connected user broadcasts their timezone, and all clients receive updates in real-time. 
-          Open multiple browser tabs to see this in action!
+          User presence is synchronized via{" "}
+          <span className="text-white font-medium">WebSockets</span>. Each
+          connected user broadcasts their timezone, and all clients receive
+          updates in real-time. Open multiple browser tabs to see this in
+          action!
         </p>
       </div>
     </div>
@@ -158,4 +160,3 @@ function formatLastSeen(ms: number): string {
   const minutes = Math.floor(seconds / 60);
   return `${minutes}m ago`;
 }
-

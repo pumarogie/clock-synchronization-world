@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import { motion, AnimatePresence } from 'framer-motion';
-import type { Cursor } from '../hooks/useVideoSync';
+import { motion, AnimatePresence } from "framer-motion";
+import type { Cursor } from "../hooks/useVideoSync";
 
 interface UserCursorsProps {
   cursors: Map<string, Cursor>;
@@ -11,21 +11,21 @@ interface UserCursorsProps {
 // Generate consistent colors for users
 function getUserColor(userId: string): string {
   const colors = [
-    '#f43f5e', // rose
-    '#ec4899', // pink
-    '#a855f7', // purple
-    '#6366f1', // indigo
-    '#3b82f6', // blue
-    '#06b6d4', // cyan
-    '#10b981', // emerald
-    '#f59e0b', // amber
+    "#f43f5e", // rose
+    "#ec4899", // pink
+    "#a855f7", // purple
+    "#6366f1", // indigo
+    "#3b82f6", // blue
+    "#06b6d4", // cyan
+    "#10b981", // emerald
+    "#f59e0b", // amber
   ];
-  
+
   let hash = 0;
   for (let i = 0; i < userId.length; i++) {
     hash = userId.charCodeAt(i) + ((hash << 5) - hash);
   }
-  
+
   return colors[Math.abs(hash) % colors.length];
 }
 
@@ -36,12 +36,12 @@ export function UserCursors({ cursors, currentUserId }: UserCursorsProps) {
         {Array.from(cursors.entries()).map(([userId, cursor]) => {
           // Don't show own cursor
           if (userId === currentUserId) return null;
-          
+
           const color = getUserColor(userId);
           const isStale = Date.now() - cursor.timestamp > 5000;
-          
+
           if (isStale) return null;
-          
+
           return (
             <motion.div
               key={userId}
@@ -51,18 +51,18 @@ export function UserCursors({ cursors, currentUserId }: UserCursorsProps) {
                 top: `${cursor.y}%`,
               }}
               initial={{ opacity: 0, scale: 0 }}
-              animate={{ 
-                opacity: 1, 
+              animate={{
+                opacity: 1,
                 scale: 1,
-                x: '-50%',
-                y: '-50%',
+                x: "-50%",
+                y: "-50%",
               }}
               exit={{ opacity: 0, scale: 0 }}
-              transition={{ 
-                type: 'spring', 
-                stiffness: 300, 
+              transition={{
+                type: "spring",
+                stiffness: 300,
                 damping: 25,
-                opacity: { duration: 0.2 }
+                opacity: { duration: 0.2 },
               }}
             >
               {/* Cursor pointer */}
@@ -80,14 +80,14 @@ export function UserCursors({ cursors, currentUserId }: UserCursorsProps) {
                   strokeWidth="1.5"
                 />
               </svg>
-              
+
               {/* User label */}
               <motion.div
                 className="absolute left-6 top-4 px-2 py-1 rounded-md text-xs font-medium whitespace-nowrap"
-                style={{ 
+                style={{
                   backgroundColor: color,
-                  color: 'white',
-                  boxShadow: '0 2px 8px rgba(0,0,0,0.2)'
+                  color: "white",
+                  boxShadow: "0 2px 8px rgba(0,0,0,0.2)",
                 }}
                 initial={{ opacity: 0, x: -10 }}
                 animate={{ opacity: 1, x: 0 }}
@@ -102,4 +102,3 @@ export function UserCursors({ cursors, currentUserId }: UserCursorsProps) {
     </div>
   );
 }
-

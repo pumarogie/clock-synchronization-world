@@ -1,6 +1,6 @@
 /**
  * Room Manager
- * 
+ *
  * Handles room-based sharding for scalable video sync:
  * - Room creation and deletion
  * - User membership tracking
@@ -8,15 +8,15 @@
  * - Cross-server room state via Redis
  */
 
-import { 
-  getRedisClient, 
+import {
+  getRedisClient,
   isRedisConnected,
   setHash,
   getHashAll,
   deleteHashField,
   setWithExpiry,
-  getJSON
-} from './redis';
+  getJSON,
+} from "./redis";
 
 // ═══════════════════════════════════════════════════════════════════
 // TYPES
@@ -85,7 +85,7 @@ const KEYS = {
   roomUsers: (roomId: string) => `room:${roomId}:users`,
   roomVideo: (roomId: string) => `room:${roomId}:video`,
   roomCursors: (roomId: string) => `room:${roomId}:cursors`,
-  allRooms: 'rooms:all',
+  allRooms: "rooms:all",
 };
 
 // ═══════════════════════════════════════════════════════════════════
@@ -95,7 +95,11 @@ const KEYS = {
 /**
  * Create a new room or get existing one
  */
-export async function createRoom(roomId: string, creatorId: string, options: RoomOptions = {}): Promise<Room> {
+export async function createRoom(
+  roomId: string,
+  creatorId: string,
+  options: RoomOptions = {},
+): Promise<Room> {
   const roomData: Room = {
     id: roomId,
     name: options.name || `Room ${roomId}`,
@@ -137,7 +141,7 @@ export async function getAllRooms(): Promise<Room[]> {
     const redis = getRedisClient();
     if (redis) {
       const rooms = await redis.hGetAll(KEYS.allRooms);
-      return Object.values(rooms).map(r => JSON.parse(r as string) as Room);
+      return Object.values(rooms).map((r) => JSON.parse(r as string) as Room);
     }
   }
   return Array.from(localRooms.values());
@@ -171,7 +175,10 @@ export async function deleteRoom(roomId: string): Promise<void> {
 /**
  * Add user to a room
  */
-export async function addUserToRoom(roomId: string, userData: User): Promise<void> {
+export async function addUserToRoom(
+  roomId: string,
+  userData: User,
+): Promise<void> {
   if (isRedisConnected()) {
     await setHash(KEYS.roomUsers(roomId), userData.id, userData);
     // Refresh room TTL
@@ -191,7 +198,10 @@ export async function addUserToRoom(roomId: string, userData: User): Promise<voi
 /**
  * Remove user from a room
  */
-export async function removeUserFromRoom(roomId: string, userId: string): Promise<void> {
+export async function removeUserFromRoom(
+  roomId: string,
+  userId: string,
+): Promise<void> {
   if (isRedisConnected()) {
     await deleteHashField(KEYS.roomUsers(roomId), userId);
     await deleteHashField(KEYS.roomCursors(roomId), userId);
@@ -204,7 +214,9 @@ export async function removeUserFromRoom(roomId: string, userId: string): Promis
 /**
  * Get all users in a room
  */
-export async function getRoomUsers(roomId: string): Promise<Record<string, User>> {
+export async function getRoomUsers(
+  roomId: string,
+): Promise<Record<string, User>> {
   if (isRedisConnected()) {
     return await getHashAll<User>(KEYS.roomUsers(roomId));
   }
@@ -256,7 +268,10 @@ export async function getVideoState(roomId: string): Promise<VideoState> {
 /**
  * Set video state for a room
  */
-export async function setVideoState(roomId: string, state: Partial<VideoState>): Promise<VideoState> {
+export async function setVideoState(
+  roomId: string,
+  state: Partial<VideoState>,
+): Promise<VideoState> {
   const currentState = await getVideoState(roomId);
   const videoState: VideoState = {
     ...currentState,
@@ -278,22 +293,22 @@ export async function setVideoState(roomId: string, state: Partial<VideoState>):
  */
 export async function updateVideoTime(roomId: string): Promise<VideoState> {
   const state = await getVideoState(roomId);
-  
+
   if (state.isPlaying) {
     const now = Date.now();
     const elapsed = (now - state.lastUpdateTime) / 1000;
     state.currentTime = Math.min(state.currentTime + elapsed, state.duration);
     state.lastUpdateTime = now;
-    
+
     // Loop video when it ends
     if (state.currentTime >= state.duration) {
       state.currentTime = 0;
     }
   }
-  
+
   state.serverTimestamp = Date.now();
   await setVideoState(roomId, state);
-  
+
   return state;
 }
 
@@ -304,7 +319,11 @@ export async function updateVideoTime(roomId: string): Promise<VideoState> {
 /**
  * Update cursor position for a user in a room
  */
-export async function updateCursor(roomId: string, userId: string, cursorData: CursorData): Promise<void> {
+export async function updateCursor(
+  roomId: string,
+  userId: string,
+  cursorData: CursorData,
+): Promise<void> {
   if (isRedisConnected()) {
     await setHash(KEYS.roomCursors(roomId), userId, cursorData);
   }
@@ -314,7 +333,9 @@ export async function updateCursor(roomId: string, userId: string, cursorData: C
 /**
  * Get all cursors in a room
  */
-export async function getRoomCursors(roomId: string): Promise<Record<string, CursorData>> {
+export async function getRoomCursors(
+  roomId: string,
+): Promise<Record<string, CursorData>> {
   if (isRedisConnected()) {
     return await getHashAll<CursorData>(KEYS.roomCursors(roomId));
   }
@@ -324,7 +345,10 @@ export async function getRoomCursors(roomId: string): Promise<Record<string, Cur
 /**
  * Remove cursor for a user
  */
-export async function removeCursor(roomId: string, userId: string): Promise<void> {
+export async function removeCursor(
+  roomId: string,
+  userId: string,
+): Promise<void> {
   if (isRedisConnected()) {
     await deleteHashField(KEYS.roomCursors(roomId), userId);
   }
@@ -339,7 +363,7 @@ export async function removeCursor(roomId: string, userId: string): Promise<void
  */
 export async function cleanupEmptyRooms(): Promise<void> {
   const rooms = await getAllRooms();
-  
+
   for (const room of rooms) {
     const userCount = await getRoomUserCount(room.id);
     if (userCount === 0) {
@@ -356,7 +380,7 @@ export async function cleanupEmptyRooms(): Promise<void> {
 // DEFAULT ROOM
 // ═══════════════════════════════════════════════════════════════════
 
-export const DEFAULT_ROOM_ID = 'main-lobby';
+export const DEFAULT_ROOM_ID = "main-lobby";
 
 /**
  * Ensure the default room exists
@@ -364,8 +388,8 @@ export const DEFAULT_ROOM_ID = 'main-lobby';
 export async function ensureDefaultRoom(): Promise<void> {
   const existing = await getRoom(DEFAULT_ROOM_ID);
   if (!existing) {
-    await createRoom(DEFAULT_ROOM_ID, 'system', {
-      name: 'Main Lobby',
+    await createRoom(DEFAULT_ROOM_ID, "system", {
+      name: "Main Lobby",
       isPublic: true,
       maxUsers: 100000,
     });
@@ -391,4 +415,3 @@ export default {
   ensureDefaultRoom,
   DEFAULT_ROOM_ID,
 };
-

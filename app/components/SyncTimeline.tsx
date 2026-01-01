@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import { motion } from 'framer-motion';
-import type { SyncMeasurement } from '../hooks/useTimeSync';
+import { motion } from "framer-motion";
+import type { SyncMeasurement } from "../hooks/useTimeSync";
 
 interface SyncTimelineProps {
   lastMeasurement: SyncMeasurement | null;
@@ -18,7 +18,7 @@ export function SyncTimeline({ lastMeasurement }: SyncTimelineProps) {
         <div className="text-center py-12 text-slate-500">
           <motion.div
             animate={{ rotate: 360 }}
-            transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
+            transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
             className="text-4xl mb-4"
           >
             ⏳
@@ -30,7 +30,7 @@ export function SyncTimeline({ lastMeasurement }: SyncTimelineProps) {
   }
 
   const { t1, t2, t3, t4, offset, roundTripTime } = lastMeasurement;
-  
+
   // Calculate relative positions for visualization
   const totalTime = t4 - t1;
   const clientToServer = ((t2 - t1) / totalTime) * 100;
@@ -56,7 +56,7 @@ export function SyncTimeline({ lastMeasurement }: SyncTimelineProps) {
         <div className="relative h-40 bg-slate-800/50 rounded-xl border border-slate-700/50 overflow-hidden">
           {/* Client line */}
           <div className="absolute top-8 left-4 right-4 h-0.5 bg-blue-500/30" />
-          
+
           {/* Server line */}
           <div className="absolute bottom-8 left-4 right-4 h-0.5 bg-green-500/30" />
 
@@ -117,9 +117,9 @@ export function SyncTimeline({ lastMeasurement }: SyncTimelineProps) {
           {/* Server processing indicator */}
           <motion.div
             className="absolute bottom-6 h-1 bg-linear-to-br from-green-500 to-yellow-500 rounded"
-            style={{ 
+            style={{
               left: `calc(12px + ${clientToServer}%)`,
-              width: `${serverProcessing}%`
+              width: `${serverProcessing}%`,
             }}
             initial={{ scaleX: 0 }}
             animate={{ scaleX: 1 }}
@@ -129,7 +129,9 @@ export function SyncTimeline({ lastMeasurement }: SyncTimelineProps) {
           {/* T3 - Server sends response */}
           <motion.div
             className="absolute bottom-6"
-            style={{ left: `calc(4px + ${clientToServer + serverProcessing}%)` }}
+            style={{
+              left: `calc(4px + ${clientToServer + serverProcessing}%)`,
+            }}
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
             transition={{ delay: 0.6 }}
@@ -167,10 +169,30 @@ export function SyncTimeline({ lastMeasurement }: SyncTimelineProps) {
 
       {/* Timestamp breakdown */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
-        <TimestampCard label="T1" sublabel="Client Send" value={t1} color="blue" />
-        <TimestampCard label="T2" sublabel="Server Receive" value={t2} color="green" />
-        <TimestampCard label="T3" sublabel="Server Send" value={t3} color="yellow" />
-        <TimestampCard label="T4" sublabel="Client Receive" value={t4} color="purple" />
+        <TimestampCard
+          label="T1"
+          sublabel="Client Send"
+          value={t1}
+          color="blue"
+        />
+        <TimestampCard
+          label="T2"
+          sublabel="Server Receive"
+          value={t2}
+          color="green"
+        />
+        <TimestampCard
+          label="T3"
+          sublabel="Server Send"
+          value={t3}
+          color="yellow"
+        />
+        <TimestampCard
+          label="T4"
+          sublabel="Client Receive"
+          value={t4}
+          color="purple"
+        />
       </div>
 
       {/* Calculations explained */}
@@ -179,7 +201,7 @@ export function SyncTimeline({ lastMeasurement }: SyncTimelineProps) {
           <span>🧮</span>
           Step-by-Step Calculation
         </h3>
-        
+
         <div className="space-y-3 font-mono text-sm">
           <CalculationStep
             step={1}
@@ -189,7 +211,7 @@ export function SyncTimeline({ lastMeasurement }: SyncTimelineProps) {
             result={`${t2 - t1}ms`}
             description="Time for your request to reach the server"
           />
-          
+
           <CalculationStep
             step={2}
             title="Server Processing Time"
@@ -198,7 +220,7 @@ export function SyncTimeline({ lastMeasurement }: SyncTimelineProps) {
             result={`${t3 - t2}ms`}
             description="Time the server spent processing"
           />
-          
+
           <CalculationStep
             step={3}
             title="One-way delay (Server → Client)"
@@ -207,7 +229,7 @@ export function SyncTimeline({ lastMeasurement }: SyncTimelineProps) {
             result={`${t4 - t3}ms`}
             description="Time for server response to reach you"
           />
-          
+
           <CalculationStep
             step={4}
             title="Round-Trip Time (RTT)"
@@ -217,7 +239,7 @@ export function SyncTimeline({ lastMeasurement }: SyncTimelineProps) {
             description="Total network time (excluding server processing)"
             highlight
           />
-          
+
           <CalculationStep
             step={5}
             title="Clock Offset"
@@ -237,33 +259,36 @@ export function SyncTimeline({ lastMeasurement }: SyncTimelineProps) {
           Why This Formula?
         </h3>
         <p className="text-sm text-slate-400 leading-relaxed">
-          The NTP algorithm assumes <span className="text-cyan-400">symmetric network delays</span> — 
-          that the request and response take roughly the same time. By measuring the round-trip 
-          and accounting for server processing, we can estimate the one-way delay and calculate 
-          how much your clock differs from the server. A <span className="text-emerald-400">positive offset</span> means 
-          your clock is behind; <span className="text-red-400">negative</span> means it&apos;s ahead.
+          The NTP algorithm assumes{" "}
+          <span className="text-cyan-400">symmetric network delays</span> — that
+          the request and response take roughly the same time. By measuring the
+          round-trip and accounting for server processing, we can estimate the
+          one-way delay and calculate how much your clock differs from the
+          server. A <span className="text-emerald-400">positive offset</span>{" "}
+          means your clock is behind;{" "}
+          <span className="text-red-400">negative</span> means it&apos;s ahead.
         </p>
       </div>
     </div>
   );
 }
 
-function TimestampCard({ 
-  label, 
-  sublabel, 
-  value, 
-  color 
-}: { 
-  label: string; 
-  sublabel: string; 
-  value: number; 
-  color: 'blue' | 'green' | 'yellow' | 'purple';
+function TimestampCard({
+  label,
+  sublabel,
+  value,
+  color,
+}: {
+  label: string;
+  sublabel: string;
+  value: number;
+  color: "blue" | "green" | "yellow" | "purple";
 }) {
   const colors = {
-    blue: 'bg-blue-500/10 border-blue-500/30 text-blue-400',
-    green: 'bg-green-500/10 border-green-500/30 text-green-400',
-    yellow: 'bg-yellow-500/10 border-yellow-500/30 text-yellow-400',
-    purple: 'bg-purple-500/10 border-purple-500/30 text-purple-400',
+    blue: "bg-blue-500/10 border-blue-500/30 text-blue-400",
+    green: "bg-green-500/10 border-green-500/30 text-green-400",
+    yellow: "bg-yellow-500/10 border-yellow-500/30 text-yellow-400",
+    purple: "bg-purple-500/10 border-purple-500/30 text-purple-400",
   };
 
   return (
@@ -272,9 +297,7 @@ function TimestampCard({
         <span className="font-bold">{label}</span>
         <span className="text-xs text-slate-500">{sublabel}</span>
       </div>
-      <div className="font-mono text-xs text-slate-300 truncate">
-        {value}
-      </div>
+      <div className="font-mono text-xs text-slate-300 truncate">{value}</div>
     </div>
   );
 }
@@ -298,7 +321,7 @@ function CalculationStep({
 }) {
   return (
     <motion.div
-      className={`p-3 rounded-lg ${highlight ? 'bg-cyan-500/10 border border-cyan-500/20' : 'bg-slate-700/30'}`}
+      className={`p-3 rounded-lg ${highlight ? "bg-cyan-500/10 border border-cyan-500/20" : "bg-slate-700/30"}`}
       initial={{ opacity: 0, x: -10 }}
       animate={{ opacity: 1, x: 0 }}
       transition={{ delay: step * 0.1 }}
@@ -311,11 +334,17 @@ function CalculationStep({
           <div className="text-sm font-medium text-white mb-1">{title}</div>
           <div className="text-xs text-slate-500 mb-2">{description}</div>
           <div className="flex flex-wrap items-center gap-2 text-xs">
-            <code className="px-2 py-0.5 bg-slate-800 rounded text-cyan-300">{formula}</code>
+            <code className="px-2 py-0.5 bg-slate-800 rounded text-cyan-300">
+              {formula}
+            </code>
             <span className="text-slate-600">=</span>
-            <code className="px-2 py-0.5 bg-slate-800 rounded text-slate-400 truncate max-w-[150px]">{values}</code>
+            <code className="px-2 py-0.5 bg-slate-800 rounded text-slate-400 truncate max-w-[150px]">
+              {values}
+            </code>
             <span className="text-slate-600">=</span>
-            <code className={`px-2 py-0.5 rounded font-bold ${highlight ? 'bg-cyan-500/20 text-cyan-300' : 'bg-slate-800 text-emerald-400'}`}>
+            <code
+              className={`px-2 py-0.5 rounded font-bold ${highlight ? "bg-cyan-500/20 text-cyan-300" : "bg-slate-800 text-emerald-400"}`}
+            >
               {result}
             </code>
           </div>
@@ -324,4 +353,3 @@ function CalculationStep({
     </motion.div>
   );
 }
-

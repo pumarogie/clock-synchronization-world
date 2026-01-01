@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef } from "react";
 
 export interface TimeSyncState {
   // The calculated offset between client and server clocks (in ms)
@@ -14,7 +14,7 @@ export interface TimeSyncState {
   // Last sync timestamp
   lastSyncAt: number | null;
   // Sync quality indicator
-  syncQuality: 'excellent' | 'good' | 'fair' | 'poor' | 'unknown';
+  syncQuality: "excellent" | "good" | "fair" | "poor" | "unknown";
   // History of sync measurements for averaging
   syncHistory: SyncMeasurement[];
   // Error if any
@@ -53,7 +53,7 @@ export function useTimeSync(options: UseTimeSyncOptions = {}) {
     syncedTime: Date.now(),
     isSyncing: false,
     lastSyncAt: null,
-    syncQuality: 'unknown',
+    syncQuality: "unknown",
     syncHistory: [],
     error: null,
   });
@@ -62,11 +62,11 @@ export function useTimeSync(options: UseTimeSyncOptions = {}) {
   const animationFrameRef = useRef<number | null>(null);
 
   // Calculate sync quality based on round-trip time
-  const calculateSyncQuality = (rtt: number): TimeSyncState['syncQuality'] => {
-    if (rtt < 50) return 'excellent';
-    if (rtt < 100) return 'good';
-    if (rtt < 200) return 'fair';
-    return 'poor';
+  const calculateSyncQuality = (rtt: number): TimeSyncState["syncQuality"] => {
+    if (rtt < 50) return "excellent";
+    if (rtt < 100) return "good";
+    if (rtt < 200) return "fair";
+    return "poor";
   };
 
   // Perform a single sync measurement using NTP-style algorithm
@@ -75,9 +75,9 @@ export function useTimeSync(options: UseTimeSyncOptions = {}) {
       // T1: Client sends request
       const t1 = Date.now();
 
-      const response = await fetch('/api/time', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const response = await fetch("/api/time", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ clientSendTime: t1 }),
       });
 
@@ -85,11 +85,11 @@ export function useTimeSync(options: UseTimeSyncOptions = {}) {
       const t4 = Date.now();
 
       if (!response.ok) {
-        throw new Error('Failed to sync with server');
+        throw new Error("Failed to sync with server");
       }
 
       const data = await response.json();
-      
+
       // T2: Server receive time, T3: Server send time
       const t2 = data.serverReceiveTime;
       const t3 = data.serverSendTime;
@@ -97,11 +97,11 @@ export function useTimeSync(options: UseTimeSyncOptions = {}) {
       // NTP-style offset calculation
       // Offset = ((T2 - T1) + (T3 - T4)) / 2
       // This gives us the difference between client and server clocks
-      const offset = ((t2 - t1) + (t3 - t4)) / 2;
+      const offset = (t2 - t1 + (t3 - t4)) / 2;
 
       // Round-trip time = (T4 - T1) - (T3 - T2)
       // Total time minus server processing time
-      const roundTripTime = (t4 - t1) - (t3 - t2);
+      const roundTripTime = t4 - t1 - (t3 - t2);
 
       return {
         timestamp: Date.now(),
@@ -113,25 +113,30 @@ export function useTimeSync(options: UseTimeSyncOptions = {}) {
         t4,
       };
     } catch (error) {
-      console.error('Sync failed:', error);
+      console.error("Sync failed:", error);
       return null;
     }
   }, []);
 
   // Main sync function that updates state
   const sync = useCallback(async () => {
-    setState(prev => ({ ...prev, isSyncing: true, error: null }));
+    setState((prev) => ({ ...prev, isSyncing: true, error: null }));
 
     const measurement = await performSync();
 
     if (measurement) {
-      setState(prev => {
+      setState((prev) => {
         // Add new measurement to history
-        const newHistory = [...prev.syncHistory, measurement].slice(-historySize);
+        const newHistory = [...prev.syncHistory, measurement].slice(
+          -historySize,
+        );
 
         // Calculate average offset from recent measurements for stability
-        const avgOffset = newHistory.reduce((sum, m) => sum + m.offset, 0) / newHistory.length;
-        const avgRtt = newHistory.reduce((sum, m) => sum + m.roundTripTime, 0) / newHistory.length;
+        const avgOffset =
+          newHistory.reduce((sum, m) => sum + m.offset, 0) / newHistory.length;
+        const avgRtt =
+          newHistory.reduce((sum, m) => sum + m.roundTripTime, 0) /
+          newHistory.length;
 
         return {
           ...prev,
@@ -144,10 +149,10 @@ export function useTimeSync(options: UseTimeSyncOptions = {}) {
         };
       });
     } else {
-      setState(prev => ({
+      setState((prev) => ({
         ...prev,
         isSyncing: false,
-        error: 'Failed to sync with server',
+        error: "Failed to sync with server",
       }));
     }
   }, [performSync, historySize]);
@@ -155,7 +160,7 @@ export function useTimeSync(options: UseTimeSyncOptions = {}) {
   // Update synced time continuously
   useEffect(() => {
     const updateTime = () => {
-      setState(prev => ({
+      setState((prev) => ({
         ...prev,
         syncedTime: Date.now() + prev.offset,
       }));
@@ -189,27 +194,33 @@ export function useTimeSync(options: UseTimeSyncOptions = {}) {
   }, [sync, syncInterval, autoStart]);
 
   // Get synchronized time for a specific timezone
-  const getSyncedTimeForTimezone = useCallback((timezone: string) => {
-    const syncedDate = new Date(state.syncedTime);
-    return new Intl.DateTimeFormat('en-US', {
-      timeZone: timezone,
-      hour: '2-digit',
-      minute: '2-digit',
-      second: '2-digit',
-      hour12: false,
-    }).format(syncedDate);
-  }, [state.syncedTime]);
+  const getSyncedTimeForTimezone = useCallback(
+    (timezone: string) => {
+      const syncedDate = new Date(state.syncedTime);
+      return new Intl.DateTimeFormat("en-US", {
+        timeZone: timezone,
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+        hour12: false,
+      }).format(syncedDate);
+    },
+    [state.syncedTime],
+  );
 
   // Get full date for a timezone
-  const getSyncedDateForTimezone = useCallback((timezone: string) => {
-    const syncedDate = new Date(state.syncedTime);
-    return new Intl.DateTimeFormat('en-US', {
-      timeZone: timezone,
-      weekday: 'short',
-      month: 'short',
-      day: 'numeric',
-    }).format(syncedDate);
-  }, [state.syncedTime]);
+  const getSyncedDateForTimezone = useCallback(
+    (timezone: string) => {
+      const syncedDate = new Date(state.syncedTime);
+      return new Intl.DateTimeFormat("en-US", {
+        timeZone: timezone,
+        weekday: "short",
+        month: "short",
+        day: "numeric",
+      }).format(syncedDate);
+    },
+    [state.syncedTime],
+  );
 
   return {
     ...state,
@@ -218,4 +229,3 @@ export function useTimeSync(options: UseTimeSyncOptions = {}) {
     getSyncedDateForTimezone,
   };
 }
-

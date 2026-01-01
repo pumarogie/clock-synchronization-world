@@ -1,13 +1,13 @@
-'use client';
+"use client";
 
-import { useRef, useEffect, useCallback } from 'react';
-import { motion } from 'framer-motion';
+import { useRef, useEffect, useCallback } from "react";
+import { motion } from "framer-motion";
 
 interface VideoPlayerProps {
   setVideoRef: (video: HTMLVideoElement | null) => void;
   isPlaying: boolean;
   currentTime: number;
-  syncStatus: 'synced' | 'ahead' | 'behind' | 'seeking' | 'buffering';
+  syncStatus: "synced" | "ahead" | "behind" | "seeking" | "buffering";
   drift: number;
   playbackRate: number;
   isBuffering: boolean;
@@ -19,7 +19,8 @@ interface VideoPlayerProps {
   onReaction: (emoji: string, x: number, y: number) => void;
 }
 
-const VIDEO_URL = 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4';
+const VIDEO_URL =
+  "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4";
 
 export function VideoPlayer({
   setVideoRef,
@@ -47,47 +48,81 @@ export function VideoPlayer({
   }, [setVideoRef]);
 
   // Handle mouse move for cursor tracking
-  const handleMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
-    if (!videoContainerRef.current) return;
-    const rect = videoContainerRef.current.getBoundingClientRect();
-    const x = ((e.clientX - rect.left) / rect.width) * 100;
-    const y = ((e.clientY - rect.top) / rect.height) * 100;
-    onMouseMove(x, y);
-  }, [onMouseMove]);
+  const handleMouseMove = useCallback(
+    (e: React.MouseEvent<HTMLDivElement>) => {
+      if (!videoContainerRef.current) return;
+      const rect = videoContainerRef.current.getBoundingClientRect();
+      const x = ((e.clientX - rect.left) / rect.width) * 100;
+      const y = ((e.clientY - rect.top) / rect.height) * 100;
+      onMouseMove(x, y);
+    },
+    [onMouseMove],
+  );
 
   // Handle click for reactions
-  const handleDoubleClick = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
-    if (!videoContainerRef.current) return;
-    const rect = videoContainerRef.current.getBoundingClientRect();
-    const x = ((e.clientX - rect.left) / rect.width) * 100;
-    const y = ((e.clientY - rect.top) / rect.height) * 100;
-    // Random reaction emoji
-    const emojis = ['❤️', '🔥', '😂', '😮', '👏', '🎉', '💯', '✨'];
-    const emoji = emojis[Math.floor(Math.random() * emojis.length)];
-    onReaction(emoji, x, y);
-  }, [onReaction]);
+  const handleDoubleClick = useCallback(
+    (e: React.MouseEvent<HTMLDivElement>) => {
+      if (!videoContainerRef.current) return;
+      const rect = videoContainerRef.current.getBoundingClientRect();
+      const x = ((e.clientX - rect.left) / rect.width) * 100;
+      const y = ((e.clientY - rect.top) / rect.height) * 100;
+      // Random reaction emoji
+      const emojis = ["❤️", "🔥", "😂", "😮", "👏", "🎉", "💯", "✨"];
+      const emoji = emojis[Math.floor(Math.random() * emojis.length)];
+      onReaction(emoji, x, y);
+    },
+    [onReaction],
+  );
 
   // Handle seek from progress bar
-  const handleProgressClick = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
-    if (!progressRef.current || !videoElementRef.current) return;
-    const rect = progressRef.current.getBoundingClientRect();
-    const clickPosition = (e.clientX - rect.left) / rect.width;
-    const newTime = clickPosition * (videoElementRef.current.duration || 0);
-    onSeek(newTime);
-  }, [onSeek]);
+  const handleProgressClick = useCallback(
+    (e: React.MouseEvent<HTMLDivElement>) => {
+      if (!progressRef.current || !videoElementRef.current) return;
+      const rect = progressRef.current.getBoundingClientRect();
+      const clickPosition = (e.clientX - rect.left) / rect.width;
+      const newTime = clickPosition * (videoElementRef.current.duration || 0);
+      onSeek(newTime);
+    },
+    [onSeek],
+  );
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
     const secs = Math.floor(seconds % 60);
-    return `${mins}:${secs.toString().padStart(2, '0')}`;
+    return `${mins}:${secs.toString().padStart(2, "0")}`;
   };
 
   const syncStatusConfig = {
-    synced: { color: 'text-emerald-400', bg: 'bg-emerald-500/20', label: 'Synced', icon: '✓' },
-    ahead: { color: 'text-blue-400', bg: 'bg-blue-500/20', label: 'Ahead', icon: '⏪' },
-    behind: { color: 'text-orange-400', bg: 'bg-orange-500/20', label: 'Behind', icon: '⏩' },
-    seeking: { color: 'text-purple-400', bg: 'bg-purple-500/20', label: 'Seeking', icon: '⟳' },
-    buffering: { color: 'text-yellow-400', bg: 'bg-yellow-500/20', label: 'Buffering', icon: '◌' },
+    synced: {
+      color: "text-emerald-400",
+      bg: "bg-emerald-500/20",
+      label: "Synced",
+      icon: "✓",
+    },
+    ahead: {
+      color: "text-blue-400",
+      bg: "bg-blue-500/20",
+      label: "Ahead",
+      icon: "⏪",
+    },
+    behind: {
+      color: "text-orange-400",
+      bg: "bg-orange-500/20",
+      label: "Behind",
+      icon: "⏩",
+    },
+    seeking: {
+      color: "text-purple-400",
+      bg: "bg-purple-500/20",
+      label: "Seeking",
+      icon: "⟳",
+    },
+    buffering: {
+      color: "text-yellow-400",
+      bg: "bg-yellow-500/20",
+      label: "Buffering",
+      icon: "◌",
+    },
   };
 
   const statusConfig = syncStatusConfig[syncStatus];
@@ -111,10 +146,10 @@ export function VideoPlayer({
           crossOrigin="anonymous"
           muted
         />
-        
+
         {/* Buffering Overlay */}
         {isBuffering && (
-          <motion.div 
+          <motion.div
             className="absolute inset-0 flex items-center justify-center bg-black/50 backdrop-blur-sm"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -124,13 +159,15 @@ export function VideoPlayer({
               <motion.div
                 className="w-12 h-12 border-4 border-purple-500 border-t-transparent rounded-full"
                 animate={{ rotate: 360 }}
-                transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+                transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
               />
-              <span className="text-purple-400 text-sm font-medium">Buffering...</span>
+              <span className="text-purple-400 text-sm font-medium">
+                Buffering...
+              </span>
             </div>
           </motion.div>
         )}
-        
+
         {/* Unmute hint */}
         <div className="absolute bottom-4 left-4 px-3 py-1.5 rounded-full bg-yellow-500/20 border border-yellow-500/30 text-yellow-400 text-xs">
           🔇 Video is muted (browser autoplay policy)
@@ -149,17 +186,22 @@ export function VideoPlayer({
         >
           <div className="flex items-center gap-2">
             <motion.span
-              animate={syncStatus === 'seeking' ? { rotate: 360 } : {}}
-              transition={{ duration: 1, repeat: syncStatus === 'seeking' ? Infinity : 0, ease: 'linear' }}
+              animate={syncStatus === "seeking" ? { rotate: 360 } : {}}
+              transition={{
+                duration: 1,
+                repeat: syncStatus === "seeking" ? Infinity : 0,
+                ease: "linear",
+              }}
             >
               {statusConfig.icon}
             </motion.span>
             <span className={`text-sm font-medium ${statusConfig.color}`}>
               {statusConfig.label}
             </span>
-            {syncStatus !== 'synced' && (
+            {syncStatus !== "synced" && (
               <span className="text-xs text-slate-400">
-                ({drift > 0 ? '+' : ''}{drift.toFixed(2)}s)
+                ({drift > 0 ? "+" : ""}
+                {drift.toFixed(2)}s)
               </span>
             )}
           </div>
@@ -194,11 +236,19 @@ export function VideoPlayer({
             whileTap={{ scale: 0.95 }}
           >
             {isPlaying ? (
-              <svg className="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 24 24">
+              <svg
+                className="w-8 h-8 text-white"
+                fill="currentColor"
+                viewBox="0 0 24 24"
+              >
                 <path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z" />
               </svg>
             ) : (
-              <svg className="w-8 h-8 text-white ml-1" fill="currentColor" viewBox="0 0 24 24">
+              <svg
+                className="w-8 h-8 text-white ml-1"
+                fill="currentColor"
+                viewBox="0 0 24 24"
+              >
                 <path d="M8 5v14l11-7z" />
               </svg>
             )}
@@ -216,7 +266,9 @@ export function VideoPlayer({
         >
           <motion.div
             className="h-full bg-linear-to-r from-cyan-500 to-purple-500 rounded-full"
-            style={{ width: `${(currentTime / (videoElementRef.current?.duration || 1)) * 100}%` }}
+            style={{
+              width: `${(currentTime / (videoElementRef.current?.duration || 1)) * 100}%`,
+            }}
           />
         </div>
 
@@ -229,11 +281,19 @@ export function VideoPlayer({
               className="p-2 rounded-lg bg-slate-800/50 hover:bg-slate-700/50 transition-colors"
             >
               {isPlaying ? (
-                <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
+                <svg
+                  className="w-5 h-5 text-white"
+                  fill="currentColor"
+                  viewBox="0 0 24 24"
+                >
                   <path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z" />
                 </svg>
               ) : (
-                <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
+                <svg
+                  className="w-5 h-5 text-white"
+                  fill="currentColor"
+                  viewBox="0 0 24 24"
+                >
                   <path d="M8 5v14l11-7z" />
                 </svg>
               )}
@@ -241,7 +301,8 @@ export function VideoPlayer({
 
             {/* Time Display */}
             <div className="font-mono text-sm text-slate-400">
-              {formatTime(currentTime)} / {formatTime(videoElementRef.current?.duration || 0)}
+              {formatTime(currentTime)} /{" "}
+              {formatTime(videoElementRef.current?.duration || 0)}
             </div>
           </div>
 
@@ -249,13 +310,22 @@ export function VideoPlayer({
           <div className="flex items-center gap-3 text-xs">
             <div className="flex items-center gap-1.5">
               <span className="text-slate-500">Drift:</span>
-              <span className={drift > 0.1 || drift < -0.1 ? 'text-orange-400' : 'text-emerald-400'}>
-                {drift > 0 ? '+' : ''}{(drift * 1000).toFixed(0)}ms
+              <span
+                className={
+                  drift > 0.1 || drift < -0.1
+                    ? "text-orange-400"
+                    : "text-emerald-400"
+                }
+              >
+                {drift > 0 ? "+" : ""}
+                {(drift * 1000).toFixed(0)}ms
               </span>
             </div>
             <div className="flex items-center gap-1.5">
               <span className="text-slate-500">Rate:</span>
-              <span className="text-cyan-400 font-mono">{playbackRate.toFixed(2)}x</span>
+              <span className="text-cyan-400 font-mono">
+                {playbackRate.toFixed(2)}x
+              </span>
             </div>
           </div>
         </div>
@@ -263,4 +333,3 @@ export function VideoPlayer({
     </div>
   );
 }
-

@@ -1,11 +1,11 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { VideoPlayer } from './VideoPlayer';
-import { UserCursors } from './UserCursors';
-import { Reactions, EmojiPicker } from './Reactions';
-import { useVideoSync } from '../hooks/useVideoSync';
+import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { VideoPlayer } from "./VideoPlayer";
+import { UserCursors } from "./UserCursors";
+import { Reactions, EmojiPicker } from "./Reactions";
+import { useVideoSync } from "../hooks/useVideoSync";
 
 export function WatchParty() {
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
@@ -31,18 +31,20 @@ export function WatchParty() {
           </p>
         </div>
         <div className="flex items-center gap-3">
-          <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full border ${
-            videoSync.isConnected 
-              ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400'
-              : 'bg-red-500/10 border-red-500/30 text-red-400'
-          }`}>
+          <div
+            className={`flex items-center gap-2 px-3 py-1.5 rounded-full border ${
+              videoSync.isConnected
+                ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-400"
+                : "bg-red-500/10 border-red-500/30 text-red-400"
+            }`}
+          >
             <motion.div
-              className={`w-2 h-2 rounded-full ${videoSync.isConnected ? 'bg-emerald-400' : 'bg-red-400'}`}
+              className={`w-2 h-2 rounded-full ${videoSync.isConnected ? "bg-emerald-400" : "bg-red-400"}`}
               animate={videoSync.isConnected ? { scale: [1, 1.2, 1] } : {}}
               transition={{ duration: 2, repeat: Infinity }}
             />
             <span className="text-sm">
-              {videoSync.isConnected ? 'Connected' : 'Disconnected'}
+              {videoSync.isConnected ? "Connected" : "Disconnected"}
             </span>
           </div>
           <div className="px-3 py-1.5 rounded-full bg-purple-500/10 border border-purple-500/30 text-purple-400 text-sm">
@@ -70,13 +72,13 @@ export function WatchParty() {
             onMouseMove={videoSync.updateCursor}
             onReaction={videoSync.sendReaction}
           />
-          
+
           {/* User Cursors Overlay */}
           <UserCursors
             cursors={videoSync.cursors}
             currentUserId={videoSync.currentUser?.id || null}
           />
-          
+
           {/* Reactions Overlay */}
           <Reactions reactions={videoSync.reactions} />
         </div>
@@ -96,8 +98,8 @@ export function WatchParty() {
                 key={user.id}
                 className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-sm ${
                   user.id === videoSync.currentUser?.id
-                    ? 'bg-emerald-500/20 border border-emerald-500/30 text-emerald-400'
-                    : 'bg-slate-700/50 text-slate-300'
+                    ? "bg-emerald-500/20 border border-emerald-500/30 text-emerald-400"
+                    : "bg-slate-700/50 text-slate-300"
                 }`}
                 initial={{ scale: 0 }}
                 animate={{ scale: 1 }}
@@ -124,7 +126,7 @@ export function WatchParty() {
             <span className="text-xl">✨</span>
             <span className="text-sm font-medium">React</span>
           </motion.button>
-          
+
           <AnimatePresence>
             {showEmojiPicker && (
               <motion.div
@@ -148,21 +150,22 @@ export function WatchParty() {
             How Sync Works
           </h3>
           <p className="text-sm text-slate-400 leading-relaxed">
-            The server broadcasts the authoritative playback position every 500ms. 
-            Each client compares their local position and adjusts playback speed 
-            (1.05x if behind, 0.95x if ahead) to smoothly catch up without jarring jumps.
+            The server broadcasts the authoritative playback position every
+            500ms. Each client compares their local position and adjusts
+            playback speed (1.05x if behind, 0.95x if ahead) to smoothly catch
+            up without jarring jumps.
           </p>
         </div>
-        
+
         <div className="p-4 rounded-xl bg-slate-800/40 border border-slate-700/50">
           <h3 className="text-sm font-semibold text-purple-400 mb-2 flex items-center gap-2">
             <span>👆</span>
             Cursor & Reactions
           </h3>
           <p className="text-sm text-slate-400 leading-relaxed">
-            Cursor positions are broadcast via WebSocket at 20Hz (throttled to 50ms). 
-            Reactions are timestamped to the video position so everyone sees them 
-            at the same moment in the content.
+            Cursor positions are broadcast via WebSocket at 20Hz (throttled to
+            50ms). Reactions are timestamped to the video position so everyone
+            sees them at the same moment in the content.
           </p>
         </div>
       </div>
@@ -176,32 +179,55 @@ export function WatchParty() {
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
           <StatBox
             label="Sync Status"
-            value={videoSync.syncStatus.charAt(0).toUpperCase() + videoSync.syncStatus.slice(1)}
-            color={videoSync.syncStatus === 'synced' ? 'emerald' : videoSync.syncStatus === 'buffering' ? 'purple' : 'orange'}
+            value={
+              videoSync.syncStatus.charAt(0).toUpperCase() +
+              videoSync.syncStatus.slice(1)
+            }
+            color={
+              videoSync.syncStatus === "synced"
+                ? "emerald"
+                : videoSync.syncStatus === "buffering"
+                  ? "purple"
+                  : "orange"
+            }
           />
           <StatBox
             label="Drift"
             value={`${(videoSync.drift * 1000).toFixed(0)}ms`}
-            color={Math.abs(videoSync.drift) < 0.05 ? 'emerald' : Math.abs(videoSync.drift) < 0.1 ? 'cyan' : 'orange'}
+            color={
+              Math.abs(videoSync.drift) < 0.05
+                ? "emerald"
+                : Math.abs(videoSync.drift) < 0.1
+                  ? "cyan"
+                  : "orange"
+            }
           />
           <StatBox
             label="Playback Rate"
             value={`${videoSync.playbackRate.toFixed(2)}x`}
-            color={videoSync.playbackRate === 1 ? 'emerald' : 'cyan'}
+            color={videoSync.playbackRate === 1 ? "emerald" : "cyan"}
           />
           <StatBox
             label="Network RTT"
             value={`${(videoSync.networkLatency * 2).toFixed(0)}ms`}
-            color={videoSync.networkLatency < 50 ? 'emerald' : videoSync.networkLatency < 100 ? 'cyan' : 'orange'}
+            color={
+              videoSync.networkLatency < 50
+                ? "emerald"
+                : videoSync.networkLatency < 100
+                  ? "cyan"
+                  : "orange"
+            }
           />
           <StatBox
             label="Buffering"
-            value={videoSync.isBuffering ? 'Yes' : 'No'}
-            color={videoSync.isBuffering ? 'purple' : 'emerald'}
+            value={videoSync.isBuffering ? "Yes" : "No"}
+            color={videoSync.isBuffering ? "purple" : "emerald"}
           />
           <StatBox
             label="Server Time"
-            value={new Date(videoSync.videoState.serverTimestamp).toLocaleTimeString()}
+            value={new Date(
+              videoSync.videoState.serverTimestamp,
+            ).toLocaleTimeString()}
             color="slate"
           />
         </div>
@@ -210,21 +236,21 @@ export function WatchParty() {
   );
 }
 
-function StatBox({ 
-  label, 
-  value, 
-  color 
-}: { 
-  label: string; 
-  value: string; 
-  color: 'emerald' | 'orange' | 'cyan' | 'slate' | 'purple';
+function StatBox({
+  label,
+  value,
+  color,
+}: {
+  label: string;
+  value: string;
+  color: "emerald" | "orange" | "cyan" | "slate" | "purple";
 }) {
   const colors = {
-    emerald: 'text-emerald-400',
-    orange: 'text-orange-400',
-    cyan: 'text-cyan-400',
-    slate: 'text-slate-400',
-    purple: 'text-purple-400',
+    emerald: "text-emerald-400",
+    orange: "text-orange-400",
+    cyan: "text-cyan-400",
+    slate: "text-slate-400",
+    purple: "text-purple-400",
   };
 
   return (
@@ -234,4 +260,3 @@ function StatBox({
     </div>
   );
 }
-

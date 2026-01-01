@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import { useSocketContext } from '../context/SocketContext';
+import { useSocketContext } from "../context/SocketContext";
 
 export interface User {
   id: string;
@@ -12,11 +12,12 @@ export interface User {
 }
 
 export function useSocket() {
-  const { socket, isConnected, currentUser, users, serverTime } = useSocketContext();
+  const { socket, isConnected, currentUser, users, serverTime } =
+    useSocketContext();
 
   const requestTimeSync = () => {
     if (socket?.connected) {
-      socket.emit('time:sync', Date.now());
+      socket.emit("time:sync", Date.now());
     }
   };
 

@@ -1,13 +1,13 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 
 const TOPICS = [
   {
-    id: 'why-sync',
-    icon: '❓',
-    title: 'Why Synchronize Time?',
+    id: "why-sync",
+    icon: "❓",
+    title: "Why Synchronize Time?",
     content: `
       In distributed systems, accurate time is crucial for:
       
@@ -21,9 +21,9 @@ const TOPICS = [
     `,
   },
   {
-    id: 'ntp',
-    icon: '🌐',
-    title: 'What is NTP?',
+    id: "ntp",
+    icon: "🌐",
+    title: "What is NTP?",
     content: `
       **Network Time Protocol (NTP)** is one of the oldest internet protocols, created in 1985.
       
@@ -38,9 +38,9 @@ const TOPICS = [
     `,
   },
   {
-    id: 'algorithm',
-    icon: '🧮',
-    title: 'The Sync Algorithm',
+    id: "algorithm",
+    icon: "🧮",
+    title: "The Sync Algorithm",
     content: `
       The algorithm this demo uses is simplified NTP:
       
@@ -59,9 +59,9 @@ const TOPICS = [
     `,
   },
   {
-    id: 'challenges',
-    icon: '⚡',
-    title: 'Synchronization Challenges',
+    id: "challenges",
+    icon: "⚡",
+    title: "Synchronization Challenges",
     content: `
       Perfect sync is impossible due to:
       
@@ -75,9 +75,9 @@ const TOPICS = [
     `,
   },
   {
-    id: 'alternatives',
-    icon: '🔄',
-    title: 'Modern Alternatives',
+    id: "alternatives",
+    icon: "🔄",
+    title: "Modern Alternatives",
     content: `
       **PTP (Precision Time Protocol)**
       • Hardware-assisted timestamps
@@ -96,9 +96,9 @@ const TOPICS = [
     `,
   },
   {
-    id: 'websocket',
-    icon: '🔌',
-    title: 'WebSocket Presence',
+    id: "websocket",
+    icon: "🔌",
+    title: "WebSocket Presence",
     content: `
       This demo uses WebSockets for real-time features:
       
@@ -120,7 +120,7 @@ const TOPICS = [
 ];
 
 export function LearnSection() {
-  const [expandedTopic, setExpandedTopic] = useState<string | null>('why-sync');
+  const [expandedTopic, setExpandedTopic] = useState<string | null>("why-sync");
 
   return (
     <div className="p-6 rounded-2xl bg-linear-to-r from-slate-900/60 to-slate-800/40 backdrop-blur-xl border border-slate-600/30">
@@ -133,15 +133,19 @@ export function LearnSection() {
         {TOPICS.map((topic) => (
           <div key={topic.id} className="rounded-xl overflow-hidden">
             <button
-              onClick={() => setExpandedTopic(expandedTopic === topic.id ? null : topic.id)}
+              onClick={() =>
+                setExpandedTopic(expandedTopic === topic.id ? null : topic.id)
+              }
               className={`w-full flex items-center gap-3 p-4 text-left transition-all ${
                 expandedTopic === topic.id
-                  ? 'bg-cyan-500/10 border-l-2 border-cyan-500'
-                  : 'bg-slate-800/30 hover:bg-slate-800/50 border-l-2 border-transparent'
+                  ? "bg-cyan-500/10 border-l-2 border-cyan-500"
+                  : "bg-slate-800/30 hover:bg-slate-800/50 border-l-2 border-transparent"
               }`}
             >
               <span className="text-xl shrink-0">{topic.icon}</span>
-              <span className="font-medium text-white flex-1">{topic.title}</span>
+              <span className="font-medium text-white flex-1">
+                {topic.title}
+              </span>
               <motion.span
                 animate={{ rotate: expandedTopic === topic.id ? 180 : 0 }}
                 className="text-slate-400"
@@ -149,12 +153,12 @@ export function LearnSection() {
                 ▼
               </motion.span>
             </button>
-            
+
             <AnimatePresence>
               {expandedTopic === topic.id && (
                 <motion.div
                   initial={{ height: 0, opacity: 0 }}
-                  animate={{ height: 'auto', opacity: 1 }}
+                  animate={{ height: "auto", opacity: 1 }}
                   exit={{ height: 0, opacity: 0 }}
                   transition={{ duration: 0.2 }}
                   className="overflow-hidden"
@@ -178,10 +182,22 @@ export function LearnSection() {
           Further Reading
         </h3>
         <div className="flex flex-wrap gap-2">
-          <ExternalLink href="https://en.wikipedia.org/wiki/Network_Time_Protocol" label="NTP Wikipedia" />
-          <ExternalLink href="https://datatracker.ietf.org/doc/html/rfc5905" label="NTP RFC 5905" />
-          <ExternalLink href="https://cloud.google.com/spanner/docs/true-time-external-consistency" label="Google TrueTime" />
-          <ExternalLink href="https://lamport.azurewebsites.net/pubs/time-clocks.pdf" label="Lamport Clocks Paper" />
+          <ExternalLink
+            href="https://en.wikipedia.org/wiki/Network_Time_Protocol"
+            label="NTP Wikipedia"
+          />
+          <ExternalLink
+            href="https://datatracker.ietf.org/doc/html/rfc5905"
+            label="NTP RFC 5905"
+          />
+          <ExternalLink
+            href="https://cloud.google.com/spanner/docs/true-time-external-consistency"
+            label="Google TrueTime"
+          />
+          <ExternalLink
+            href="https://lamport.azurewebsites.net/pubs/time-clocks.pdf"
+            label="Lamport Clocks Paper"
+          />
         </div>
       </div>
     </div>
@@ -189,25 +205,25 @@ export function LearnSection() {
 }
 
 function FormattedContent({ content }: { content: string }) {
-  const lines = content.trim().split('\n');
-  
+  const lines = content.trim().split("\n");
+
   return (
     <div className="space-y-2 text-sm text-slate-300 leading-relaxed">
       {lines.map((line, i) => {
         const trimmed = line.trim();
         if (!trimmed) return <div key={i} className="h-2" />;
-        
+
         // Bold text
-        if (trimmed.startsWith('**') && trimmed.endsWith('**')) {
+        if (trimmed.startsWith("**") && trimmed.endsWith("**")) {
           return (
             <div key={i} className="font-semibold text-white">
               {trimmed.slice(2, -2)}
             </div>
           );
         }
-        
+
         // Bullet points
-        if (trimmed.startsWith('•')) {
+        if (trimmed.startsWith("•")) {
           const text = trimmed.slice(1).trim();
           // Handle inline bold
           const parts = text.split(/\*\*(.*?)\*\*/);
@@ -215,24 +231,32 @@ function FormattedContent({ content }: { content: string }) {
             <div key={i} className="flex gap-2 ml-2">
               <span className="text-cyan-500">•</span>
               <span>
-                {parts.map((part, j) => 
-                  j % 2 === 1 
-                    ? <span key={j} className="font-medium text-white">{part}</span>
-                    : <span key={j}>{part}</span>
+                {parts.map((part, j) =>
+                  j % 2 === 1 ? (
+                    <span key={j} className="font-medium text-white">
+                      {part}
+                    </span>
+                  ) : (
+                    <span key={j}>{part}</span>
+                  ),
                 )}
               </span>
             </div>
           );
         }
-        
+
         // Regular text with inline bold
         const parts = trimmed.split(/\*\*(.*?)\*\*/);
         return (
           <div key={i}>
-            {parts.map((part, j) => 
-              j % 2 === 1 
-                ? <span key={j} className="font-medium text-white">{part}</span>
-                : <span key={j}>{part}</span>
+            {parts.map((part, j) =>
+              j % 2 === 1 ? (
+                <span key={j} className="font-medium text-white">
+                  {part}
+                </span>
+              ) : (
+                <span key={j}>{part}</span>
+              ),
             )}
           </div>
         );
@@ -256,4 +280,3 @@ function ExternalLink({ href, label }: { href: string; label: string }) {
     </a>
   );
 }
-
