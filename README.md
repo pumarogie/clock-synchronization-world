@@ -179,13 +179,14 @@ clock-synchronization-world/
 │   ├── page.tsx
 │   └── providers.tsx
 ├── lib/
-│   ├── rateLimiter.js       # Rate limiting
-│   ├── redis.js             # Redis client
-│   └── roomManager.js       # Room state management
-├── server.mjs               # Custom server (Next.js + Socket.io)
+│   ├── rateLimiter.ts       # Rate limiting
+│   ├── redis.ts             # Redis client
+│   └── roomManager.ts       # Room state management
+├── server.ts                # Custom server (Next.js + Socket.io)
 ├── ecosystem.config.js      # PM2 configuration
 ├── nginx.conf               # Nginx load balancer
 ├── nginx-docker.conf        # Docker nginx config
+├── nixpacks.toml            # Nixpacks build config (Coolify)
 ├── Dockerfile
 ├── docker-compose.yml
 └── package.json
