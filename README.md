@@ -2,7 +2,7 @@
 
 A production-ready demonstration of **real-time clock synchronization** and **video watch party** functionality, showcasing techniques used by platforms like Twitch, Netflix Party, and Discord.
 
-Built with Next.js 16, React 19, Socket.io, and Redis — scalable to **100,000+ concurrent users**.
+Built with Next.js 16, React 19, Socket.io, and Redis — scalable to potentially **1000+ concurrent users**.
 
 ![Demo](https://img.shields.io/badge/Demo-Live-brightgreen) ![Next.js](https://img.shields.io/badge/Next.js-16-black) ![Socket.io](https://img.shields.io/badge/Socket.io-4.8-010101) ![Redis](https://img.shields.io/badge/Redis-7-DC382D)
 
